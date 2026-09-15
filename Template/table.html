@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ModernAdmin – Tables</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css"
+    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="shared.css" />
+  <style>
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: var(--bg-body);
+      color: var(--text-body);
+      margin: 0;
+      overflow-x: hidden;
+      transition: background .25s, color .25s
+    }
+
+    #sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: var(--sidebar-width);
+      height: 100vh;
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border);
+      z-index: 999;
+      transition: all .3s;
+      overflow-y: auto;
+      overflow-x: hidden
+    }
+
+    #sidebar.collapsed {
+      width: var(--sidebar-collapsed-width)
+    }
+
+    #sidebar::-webkit-scrollbar {
+      width: 4px
+    }
+
+    #sidebar::-webkit-scrollbar-thumb {
+      background: var(--thumb);
+      border-radius: 4px
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      padding: 16px 20px;
+      height: var(--topbar-height);
+      border-bottom: 1px solid var(--border);
+      text-decoration: none;
+      overflow: hidden;
+      white-space: nowrap
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--primary);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: #fff;
+      font-size: 18px;
+      font-weight: 800
+    }
+
+    .logo-text {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text-heading);
+      margin-left: 10px;
+      transition: opacity .3s
+    }
+
+    #sidebar.collapsed .logo-text {
+      opacity: 0;
+      width: 0
+    }
+
+    .sidebar-nav {
+      padding: 10px 0;
+      list-style: none;
+      margin: 0
+    }
+
+    .nav-heading {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 14px 20px 6px;
+      white-space: nowrap;
+      transition: opacity .3s
+    }
+
+    #sidebar.collapsed .nav-heading {
+      opacity: 0
+    }
+
+    .nav-item {
+      margin: 2px 8px
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      padding: 10px 12px;
+      border-radius: 8px;
+      color: var(--text-nav);
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      white-space: nowrap;
+      overflow: hidden;
+      transition: all .2s;
+      cursor: pointer;
+      gap: 10px
+    }
+
+    .nav-link i {
+      font-size: 16px;
+      min-width: 20px;
+      text-align: center;
+      flex-shrink: 0
+    }
+
+    .nav-link:hover {
+      background: var(--primary-light);
+      color: var(--primary)
+    }
+
+    .nav-link.active {
+      background: var(--primary);
+      color: #fff
+    }
+
+    .nav-link .nav-label {
+      transition: opacity .3s
+    }
+
+    #sidebar.collapsed .nav-link .nav-label,
+    #sidebar.collapsed .nav-link .badge,
+    #sidebar.collapsed .nav-link.has-sub .arrow {
+      display: none
+    }
+
+    .nav-link .badge {
+      margin-left: auto;
+      font-size: 10px;
+      padding: 2px 7px
+    }
+
+    .nav-link.has-sub .arrow {
+      margin-left: auto;
+      font-size: 12px;
+      transition: transform .2s
+    }
+
+    .nav-link.has-sub.open .arrow {
+      transform: rotate(90deg)
+    }
+
+    .sub-nav {
+      list-style: none;
+      padding: 0 0 0 42px;
+      margin: 0;
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height .3s
+    }
+
+    .sub-nav.open {
+      max-height: 300px
+    }
+
+    #sidebar.collapsed .sub-nav {
+      display: none
+    }
+
+    .sub-nav li a {
+      display: block;
+      padding: 7px 10px;
+      font-size: 13px;
+      color: var(--text-sub);
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 600
+    }
+
+    .sub-nav li a:hover,
+    .sub-nav li a.active {
+      color: var(--primary)
+    }
+
+    #topbar {
+      position: fixed;
+      top: 0;
+      left: var(--sidebar-width);
+      right: 0;
+      height: var(--topbar-height);
+      background: var(--bg-topbar);
+      border-bottom: 1px solid var(--border);
+      z-index: 998;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 10px;
+      transition: left .3s, background .25s
+    }
+
+    #topbar.collapsed {
+      left: var(--sidebar-collapsed-width)
+    }
+
+    .toggle-btn {
+      background: none;
+      border: none;
+      padding: 6px 8px;
+      border-radius: 6px;
+      color: var(--text-nav);
+      font-size: 20px;
+      cursor: pointer;
+      line-height: 1;
+      flex-shrink: 0
+    }
+
+    .toggle-btn:hover {
+      background: var(--primary-light);
+      color: var(--primary)
+    }
+
+    .search-bar {
+      flex: 1;
+      max-width: 340px;
+      position: relative
+    }
+
+    .search-bar input {
+      width: 100%;
+      padding: 7px 14px 7px 36px;
+      border: 1px solid var(--border);
+      border-radius: 25px;
+      font-size: 13px;
+      font-family: 'Nunito', sans-serif;
+      background: var(--bg-input);
+      color: var(--text-body);
+      outline: none;
+      transition: border .2s
+    }
+
+    .search-bar input:focus {
+      border-color: var(--primary)
+    }
+
+    .search-bar input::placeholder {
+      color: var(--text-muted)
+    }
+
+    .search-bar i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 14px
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-left: auto
+    }
+
+    .action-btn,
+    .theme-btn {
+      position: relative;
+      width: 38px;
+      height: 38px;
+      background: none;
+      border: none;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-nav);
+      font-size: 18px;
+      cursor: pointer;
+      transition: background .2s
+    }
+
+    .action-btn:hover,
+    .theme-btn:hover {
+      background: var(--primary-light);
+      color: var(--primary)
+    }
+
+    .theme-btn {
+      font-size: 17px
+    }
+
+    [data-theme="dark"] .theme-btn {
+      color: #f5c518
+    }
+
+    .badge-count {
+      position: absolute;
+      top: 3px;
+      right: 2px;
+      background: var(--danger);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 1px 4px;
+      border-radius: 10px;
+      line-height: 1.4
+    }
+
+    .badge-dot {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 8px;
+      height: 8px;
+      background: var(--danger);
+      border-radius: 50%;
+      border: 2px solid var(--dot-border)
+    }
+
+    .profile-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 8px 4px 4px;
+      border-radius: 25px;
+      border: none;
+      background: none;
+      cursor: pointer
+    }
+
+    .profile-btn:hover {
+      background: var(--primary-light)
+    }
+
+    .profile-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      flex-shrink: 0
+    }
+
+    .pname {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-heading);
+      line-height: 1.2
+    }
+
+    .prole {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.2
+    }
+
+    .topbar-dropdown {
+      position: relative
+    }
+
+    .dropdown-panel {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      width: 220px;
+      background: var(--bg-card);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      z-index: 1000;
+      display: none;
+      overflow: hidden
+    }
+
+    .topbar-dropdown.open .dropdown-panel {
+      display: block
+    }
+
+    .dp-hdr {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 4px
+    }
+
+    .dp-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--border-row);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-body);
+      transition: background .15s
+    }
+
+    .dp-item:last-child {
+      border-bottom: none
+    }
+
+    .dp-item:hover {
+      background: var(--bg-hover)
+    }
+
+    #main {
+      margin-left: var(--sidebar-width);
+      margin-top: var(--topbar-height);
+      padding: 24px;
+      transition: margin-left .3s;
+      min-height: calc(100vh - var(--topbar-height))
+    }
+
+    #main.collapsed {
+      margin-left: var(--sidebar-collapsed-width)
+    }
+
+    .page-title h1 {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text-heading);
+      margin: 0 0 4px
+    }
+
+    .breadcrumb {
+      margin: 0;
+      font-size: 13px
+    }
+
+    .breadcrumb-item+.breadcrumb-item::before {
+      color: var(--text-muted)
+    }
+
+    .breadcrumb-item a {
+      color: var(--primary);
+      text-decoration: none
+    }
+
+    .breadcrumb-item.active {
+      color: var(--text-muted)
+    }
+
+    .card-custom {
+      background: var(--bg-card);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin-bottom: 24px;
+      transition: background .25s
+    }
+
+    .card-hdr {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      transition: background .25s
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--text-heading);
+      margin: 0
+    }
+
+    .bs {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700
+    }
+
+    .bs-ok {
+      background: rgba(46, 202, 106, .12);
+      color: var(--success)
+    }
+
+    .bs-warn {
+      background: rgba(255, 119, 29, .12);
+      color: var(--warning)
+    }
+
+    .bs-err {
+      background: rgba(255, 76, 117, .12);
+      color: var(--danger)
+    }
+
+    .bs-info {
+      background: rgba(13, 202, 240, .12);
+      color: #0aa2c0
+    }
+
+    .bs-pri {
+      background: rgba(65, 84, 241, .12);
+      color: var(--primary)
+    }
+
+    .aico {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      cursor: pointer;
+      border: none;
+      transition: opacity .15s
+    }
+
+    .aico:hover {
+      opacity: .8
+    }
+
+    /* ── custom table ── */
+    .tbl-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border)
+    }
+
+    .tbl-search {
+      position: relative;
+      max-width: 260px;
+      flex: 1
+    }
+
+    .tbl-search input {
+      width: 100%;
+      padding: 7px 12px 7px 34px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: 'Nunito', sans-serif;
+      background: var(--bg-input);
+      color: var(--text-body);
+      outline: none;
+      transition: border .2s
+    }
+
+    .tbl-search input:focus {
+      border-color: var(--primary)
+    }
+
+    .tbl-search input::placeholder {
+      color: var(--text-muted)
+    }
+
+    .tbl-search i {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 13px
+    }
+
+    .per-page-sel {
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: 'Nunito', sans-serif;
+      background: var(--bg-input);
+      color: var(--text-body);
+      outline: none;
+      cursor: pointer
+    }
+
+    .tbl-wrap table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px
+    }
+
+    .tbl-wrap thead th {
+      background: var(--bg-thead);
+      color: var(--text-heading);
+      font-weight: 700;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      padding: 12px 16px;
+      border: none;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+      transition: background .25s
+    }
+
+    .tbl-wrap thead th:hover {
+      background: var(--bg-hover)
+    }
+
+    .tbl-wrap thead th .si {
+      font-size: 11px;
+      margin-left: 4px;
+      opacity: .4
+    }
+
+    .tbl-wrap thead th.asc .si::before {
+      content: '\F145';
+      font-family: 'bootstrap-icons';
+      opacity: 1
+    }
+
+    .tbl-wrap thead th.desc .si::before {
+      content: '\F148';
+      font-family: 'bootstrap-icons';
+      opacity: 1
+    }
+
+    .tbl-wrap thead th:not(.asc):not(.desc) .si::before {
+      content: '\F146';
+      font-family: 'bootstrap-icons'
+    }
+
+    .tbl-wrap tbody td {
+      padding: 12px 16px;
+      vertical-align: middle;
+      border-bottom: 1px solid var(--border-row);
+      color: var(--text-body);
+      transition: background .15s
+    }
+
+    .tbl-wrap tbody tr:hover td {
+      background: var(--bg-hover)
+    }
+
+    .tbl-wrap tbody tr:last-child td {
+      border-bottom: none
+    }
+
+    /* ── pagination ── */
+    .tbl-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 12px 20px;
+      border-top: 1px solid var(--border)
+    }
+
+    .tbl-info {
+      font-size: 13px;
+      color: var(--text-muted)
+    }
+
+    .pg-wrap {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      flex-wrap: wrap
+    }
+
+    .pg-btn {
+      min-width: 34px;
+      height: 34px;
+      padding: 0 8px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg-card);
+      color: var(--text-nav);
+      font-size: 13px;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .15s
+    }
+
+    .pg-btn:hover:not(:disabled) {
+      background: var(--primary-light);
+      color: var(--primary);
+      border-color: var(--primary)
+    }
+
+    .pg-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary)
+    }
+
+    .pg-btn:disabled {
+      opacity: .4;
+      cursor: not-allowed
+    }
+
+    .pg-ellipsis {
+      min-width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      color: var(--text-muted)
+    }
+
+    /* ── simple tables ── */
+    .tbl-simple {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px
+    }
+
+    .tbl-simple thead th {
+      background: var(--bg-thead);
+      color: var(--text-heading);
+      font-weight: 700;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      padding: 12px 16px;
+      border: none
+    }
+
+    .tbl-simple tbody td {
+      padding: 12px 16px;
+      vertical-align: middle;
+      border-bottom: 1px solid var(--border-row);
+      color: var(--text-body)
+    }
+
+    .tbl-simple tbody tr:hover td {
+      background: var(--bg-hover)
+    }
+
+    .tbl-simple tbody tr:last-child td {
+      border-bottom: none
+    }
+
+    .rat {
+      color: #ffc107;
+      font-size: 13px
+    }
+
+    .rat-e {
+      color: var(--border);
+      font-size: 13px
+    }
+
+    .footer-c {
+      background: var(--bg-card);
+      border-top: 1px solid var(--border);
+      padding: 16px 24px;
+      font-size: 13px;
+      color: var(--text-muted);
+      border-radius: 12px;
+      transition: background .25s
+    }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .4);
+      z-index: 998
+    }
+
+    .sidebar-overlay.active {
+      display: block
+    }
+
+    @media(max-width:991px) {
+      #sidebar {
+        transform: translateX(-100%);
+        width: var(--sidebar-width) !important
+      }
+
+      #sidebar.mobile-open {
+        transform: translateX(0)
+      }
+
+      #topbar {
+        left: 0 !important
+      }
+
+      #main {
+        margin-left: 0 !important
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
+
+  <nav id="sidebar">
+    <a class="sidebar-logo" href="index.html">
+      <div class="logo-icon">M</div><span class="logo-text">ModernAdmin</span>
+    </a>
+    <ul class="sidebar-nav">
+      <li class="nav-heading">Main</li>
+      <li class="nav-item"><a class="nav-link" href="index.html"><i class="bi bi-grid-1x2"></i><span
+            class="nav-label">Dashboard</span></a></li>
+      <li class="nav-heading">Pages</li>
+      <li class="nav-item"><a class="nav-link has-sub" onclick="toggleSub(this)"><i class="bi bi-people"></i><span
+            class="nav-label">Users</span><i class="bi bi-chevron-right arrow"></i></a>
+        <ul class="sub-nav">
+          <li><a href="#">User List</a></li>
+          <li><a href="#">User Profile</a></li>
+        </ul>
+      </li>
+      <li class="nav-item"><a class="nav-link has-sub" onclick="toggleSub(this)"><i class="bi bi-box-seam"></i><span
+            class="nav-label">Products</span><i class="bi bi-chevron-right arrow"></i></a>
+        <ul class="sub-nav">
+          <li><a href="#">Product List</a></li>
+          <li><a href="#">Add Product</a></li>
+        </ul>
+      </li>
+      <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-cart3"></i><span
+            class="nav-label">Orders</span><span class="badge bg-warning text-dark">12</span></a></li>
+      <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-chat-dots"></i><span
+            class="nav-label">Messages</span><span class="badge bg-danger">5</span></a></li>
+      <li class="nav-heading">Components</li>
+      <li class="nav-item"><a class="nav-link active" href="tables.html"><i class="bi bi-table"></i><span
+            class="nav-label">Tables</span></a></li>
+      <li class="nav-item"><a class="nav-link has-sub" onclick="toggleSub(this)"><i class="bi bi-ui-checks"></i><span
+            class="nav-label">Forms</span><i class="bi bi-chevron-right arrow"></i></a>
+        <ul class="sub-nav">
+          <li><a href="forms.html">Form Elements</a></li>
+        </ul>
+      </li>
+      <li class="nav-heading">Misc</li>
+      <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-gear"></i><span
+            class="nav-label">Settings</span></a></li>
+      <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-box-arrow-right"></i><span
+            class="nav-label">Logout</span></a></li>
+    </ul>
+  </nav>
+
+  <header id="topbar">
+    <button class="toggle-btn" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+    <div class="search-bar d-none d-md-block"><i class="bi bi-search"></i><input type="text" placeholder="Search..." />
+    </div>
+    <div class="topbar-actions ms-auto">
+      <button class="theme-btn" onclick="toggleTheme()" title="Tối / Sáng"><i id="themeIcon"
+          class="bi bi-moon-stars-fill"></i></button>
+      <button class="action-btn"><i class="bi bi-bell"></i><span class="badge-count">4</span></button>
+      <button class="action-btn"><i class="bi bi-chat-text"></i><span class="badge-dot"></span></button>
+      <div class="topbar-dropdown" id="profDD">
+        <button class="profile-btn" onclick="toggleDropdown('profDD')">
+          <div class="profile-avatar">AD</div>
+          <div class="d-none d-sm-block">
+            <div class="pname">Admin User</div>
+            <div class="prole">Administrator</div>
+          </div>
+          <i class="bi bi-chevron-down ms-1 d-none d-sm-block" style="font-size:11px;color:var(--text-muted)"></i>
+        </button>
+        <div class="dropdown-panel">
+          <div class="dp-hdr">
+            <div style="font-size:15px;font-weight:800;color:var(--text-heading)">Admin User</div>
+            <div style="font-size:12px;font-weight:400;color:var(--text-muted)">admin@modernapp.com</div>
+          </div>
+          <div class="dp-item"><i class="bi bi-person me-2"></i>My Profile</div>
+          <div class="dp-item"><i class="bi bi-gear me-2"></i>Settings</div>
+          <div class="dp-item" style="color:var(--danger)"><i class="bi bi-box-arrow-right me-2"></i>Logout</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="d-flex align-items-start justify-content-between mb-4">
+      <div class="page-title">
+        <h1>Tables</h1>
+        <nav>
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+            <li class="breadcrumb-item active">Tables</li>
+          </ol>
+        </nav>
+      </div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3"><i
+            class="bi bi-filter me-1"></i>Filter</button>
+        <button class="btn btn-sm btn-primary rounded-pill px-3"><i class="bi bi-plus-lg me-1"></i>Add New</button>
+      </div>
+    </div>
+
+    <!-- PAGINATED TABLE -->
+    <div class="card-custom">
+      <div class="card-hdr">
+        <h5 class="card-title"><i class="bi bi-people me-2" style="color:var(--primary)"></i>Users Table <span
+            id="usersTotalBadge" class="badge bg-primary rounded-pill ms-1" style="font-size:11px">20</span></h5>
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="exportCSV()"><i
+              class="bi bi-download me-1"></i>CSV</button>
+          <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="window.print()"><i
+              class="bi bi-printer me-1"></i>Print</button>
+        </div>
+      </div>
+      <div class="tbl-toolbar">
+        <div class="tbl-search"><i class="bi bi-search"></i><input type="text" id="userSearch"
+            placeholder="Search name, role, dept..." oninput="renderTable()" /></div>
+        <div class="d-flex align-items-center gap-2">
+          <span style="font-size:13px;color:var(--text-muted)">Show</span>
+          <select class="per-page-sel" id="perPage" onchange="renderTable()">
+            <option value="5" selected>5</option>
+            <option value="10">10</option>
+            <option value="20">20</option>
+          </select>
+          <span style="font-size:13px;color:var(--text-muted)">entries</span>
+        </div>
+      </div>
+      <div class="tbl-wrap table-responsive">
+        <table id="usersTable">
+          <thead>
+            <tr>
+              <th onclick="sortTable(0)">#<span class="si"></span></th>
+              <th onclick="sortTable(1)">User<span class="si"></span></th>
+              <th onclick="sortTable(2)">Role<span class="si"></span></th>
+              <th onclick="sortTable(3)">Department<span class="si"></span></th>
+              <th onclick="sortTable(4)">Status<span class="si"></span></th>
+              <th onclick="sortTable(5)">Joined<span class="si"></span></th>
+              <th style="cursor:default">Rating</th>
+              <th style="cursor:default">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="usersTbody"></tbody>
+        </table>
+      </div>
+      <div class="tbl-footer">
+        <div class="tbl-info" id="tableInfo">–</div>
+        <div class="pg-wrap" id="paginationWrap"></div>
+      </div>
+    </div>
+
+    <!-- Bordered + Contextual -->
+    <div class="row g-3 mb-4">
+      <div class="col-12 col-lg-6">
+        <div class="card-custom" style="margin-bottom:0">
+          <div class="card-hdr">
+            <h5 class="card-title">Bordered Table</h5>
+          </div>
+          <div class="table-responsive">
+            <table class="tbl-simple" style="border:1px solid var(--border)">
+              <thead>
+                <tr>
+                  <th style="border:1px solid var(--border)">#</th>
+                  <th style="border:1px solid var(--border)">Name</th>
+                  <th style="border:1px solid var(--border)">Country</th>
+                  <th style="border:1px solid var(--border)">Sales</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="border:1px solid var(--border)">1</td>
+                  <td style="border:1px solid var(--border)">John Doe</td>
+                  <td style="border:1px solid var(--border)">🇺🇸 USA</td>
+                  <td style="border:1px solid var(--border)"><strong>$12,450</strong></td>
+                </tr>
+                <tr>
+                  <td style="border:1px solid var(--border)">2</td>
+                  <td style="border:1px solid var(--border)">Anna Smith</td>
+                  <td style="border:1px solid var(--border)">🇬🇧 UK</td>
+                  <td style="border:1px solid var(--border)"><strong>$9,830</strong></td>
+                </tr>
+                <tr>
+                  <td style="border:1px solid var(--border)">3</td>
+                  <td style="border:1px solid var(--border)">Robert Kim</td>
+                  <td style="border:1px solid var(--border)">🇰🇷 Korea</td>
+                  <td style="border:1px solid var(--border)"><strong>$7,200</strong></td>
+                </tr>
+                <tr>
+                  <td style="border:1px solid var(--border)">4</td>
+                  <td style="border:1px solid var(--border)">Linh Nguyen</td>
+                  <td style="border:1px solid var(--border)">🇻🇳 Vietnam</td>
+                  <td style="border:1px solid var(--border)"><strong>$6,100</strong></td>
+                </tr>
+                <tr>
+                  <td style="border:1px solid var(--border)">5</td>
+                  <td style="border:1px solid var(--border)">Maria Lee</td>
+                  <td style="border:1px solid var(--border)">🇸🇬 Singapore</td>
+                  <td style="border:1px solid var(--border)"><strong>$5,760</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-lg-6">
+        <div class="card-custom" style="margin-bottom:0">
+          <div class="card-hdr">
+            <h5 class="card-title">Striped + Contextual Rows</h5>
+          </div>
+          <div class="table-responsive">
+            <table class="tbl-simple">
+              <thead>
+                <tr>
+                  <th>Task</th>
+                  <th>Assignee</th>
+                  <th>Priority</th>
+                  <th>Due</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="background:rgba(255,76,117,.08)">
+                  <td>Fix login bug</td>
+                  <td>John D.</td>
+                  <td><span class="bs bs-err">Critical</span></td>
+                  <td>Today</td>
+                </tr>
+                <tr style="background:rgba(255,119,29,.08)">
+                  <td>Update docs</td>
+                  <td>Anna S.</td>
+                  <td><span class="bs bs-warn">High</span></td>
+                  <td>Tomorrow</td>
+                </tr>
+                <tr style="background:rgba(46,202,106,.08)">
+                  <td>Deploy v2.1</td>
+                  <td>Tom C.</td>
+                  <td><span class="bs bs-ok">Done</span></td>
+                  <td>Mar 10</td>
+                </tr>
+                <tr style="background:rgba(13,202,240,.08)">
+                  <td>Code review</td>
+                  <td>Sarah P.</td>
+                  <td><span class="bs bs-info">Medium</span></td>
+                  <td>Mar 20</td>
+                </tr>
+                <tr>
+                  <td>Write tests</td>
+                  <td>Ben T.</td>
+                  <td><span class="bs bs-pri">Normal</span></td>
+                  <td>Mar 25</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order Progress -->
+    <div class="card-custom">
+      <div class="card-hdr">
+        <h5 class="card-title"><i class="bi bi-cart3 me-2" style="color:var(--warning)"></i>Order Progress Tracker</h5>
+        <span class="badge bg-warning text-dark rounded-pill">5 orders</span>
+      </div>
+      <div class="table-responsive">
+        <table class="tbl-simple">
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Customer</th>
+              <th>Product</th>
+              <th>Amount</th>
+              <th>Progress</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>#1042</strong></td>
+              <td>John Doe</td>
+              <td>MacBook Pro</td>
+              <td><strong>$2,499</strong></td>
+              <td style="min-width:150px">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div style="flex:1;height:6px;border-radius:4px;background:var(--border-row)">
+                    <div style="width:100%;height:100%;border-radius:4px;background:var(--success)"></div>
+                  </div><span style="font-size:12px;font-weight:700;color:var(--success)">100%</span>
+                </div>
+              </td>
+              <td><span class="bs bs-ok">Delivered</span></td>
+              <td><button class="aico me-1" style="background:rgba(65,84,241,.15);color:var(--primary)"><i
+                    class="bi bi-eye"></i></button><button class="aico"
+                  style="background:rgba(255,76,117,.15);color:var(--danger)"><i class="bi bi-x-lg"></i></button></td>
+            </tr>
+            <tr>
+              <td><strong>#1041</strong></td>
+              <td>Anna Smith</td>
+              <td>iPhone 15 Pro</td>
+              <td><strong>$1,199</strong></td>
+              <td style="min-width:150px">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div style="flex:1;height:6px;border-radius:4px;background:var(--border-row)">
+                    <div style="width:65%;height:100%;border-radius:4px;background:var(--primary)"></div>
+                  </div><span style="font-size:12px;font-weight:700;color:var(--primary)">65%</span>
+                </div>
+              </td>
+              <td><span class="bs bs-info">Shipping</span></td>
+              <td><button class="aico me-1" style="background:rgba(65,84,241,.15);color:var(--primary)"><i
+                    class="bi bi-eye"></i></button><button class="aico"
+                  style="background:rgba(255,76,117,.15);color:var(--danger)"><i class="bi bi-x-lg"></i></button></td>
+            </tr>
+            <tr>
+              <td><strong>#1040</strong></td>
+              <td>Robert Kim</td>
+              <td>Sony WH-1000XM5</td>
+              <td><strong>$349</strong></td>
+              <td style="min-width:150px">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div style="flex:1;height:6px;border-radius:4px;background:var(--border-row)">
+                    <div style="width:30%;height:100%;border-radius:4px;background:var(--warning)"></div>
+                  </div><span style="font-size:12px;font-weight:700;color:var(--warning)">30%</span>
+                </div>
+              </td>
+              <td><span class="bs bs-warn">Pending</span></td>
+              <td><button class="aico me-1" style="background:rgba(65,84,241,.15);color:var(--primary)"><i
+                    class="bi bi-eye"></i></button><button class="aico"
+                  style="background:rgba(255,76,117,.15);color:var(--danger)"><i class="bi bi-x-lg"></i></button></td>
+            </tr>
+            <tr>
+              <td><strong>#1039</strong></td>
+              <td>Maria Lee</td>
+              <td>iPad Air 5th Gen</td>
+              <td><strong>$749</strong></td>
+              <td style="min-width:150px">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div style="flex:1;height:6px;border-radius:4px;background:var(--border-row)">
+                    <div style="width:0%;height:100%;border-radius:4px;background:var(--danger)"></div>
+                  </div><span style="font-size:12px;font-weight:700;color:var(--danger)">0%</span>
+                </div>
+              </td>
+              <td><span class="bs bs-err">Cancelled</span></td>
+              <td><button class="aico me-1" style="background:rgba(65,84,241,.15);color:var(--primary)"><i
+                    class="bi bi-eye"></i></button><button class="aico"
+                  style="background:rgba(255,76,117,.15);color:var(--danger)"><i class="bi bi-x-lg"></i></button></td>
+            </tr>
+            <tr>
+              <td><strong>#1038</strong></td>
+              <td>Tom Chen</td>
+              <td>AirPods Pro 2</td>
+              <td><strong>$249</strong></td>
+              <td style="min-width:150px">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div style="flex:1;height:6px;border-radius:4px;background:var(--border-row)">
+                    <div style="width:85%;height:100%;border-radius:4px;background:var(--success)"></div>
+                  </div><span style="font-size:12px;font-weight:700;color:var(--success)">85%</span>
+                </div>
+              </td>
+              <td><span class="bs bs-info">Shipping</span></td>
+              <td><button class="aico me-1" style="background:rgba(65,84,241,.15);color:var(--primary)"><i
+                    class="bi bi-eye"></i></button><button class="aico"
+                  style="background:rgba(255,76,117,.15);color:var(--danger)"><i class="bi bi-x-lg"></i></button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="footer-c d-flex flex-wrap justify-content-between align-items-center gap-2 mt-2">
+      <div>&copy; 2024 <strong>ModernAdmin</strong>. All rights reserved.</div>
+      <div>Built with <span style="color:var(--danger)">♥</span> Bootstrap 5</div>
+    </div>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+  <script src="shared.js"></script>
+  <script>
+    const USERS = [
+      { id: '#001', name: 'John Doe', email: 'john@company.com', ini: 'JD', ibg: '#e6e9ff', iclr: '#4154f1', role: 'Admin', dept: 'Engineering', status: 'Active', joined: 'Jan 12, 2023', stars: 4 },
+      { id: '#002', name: 'Anna Smith', email: 'anna@company.com', ini: 'AS', ibg: '#d1f7e0', iclr: '#2eca6a', role: 'Editor', dept: 'Marketing', status: 'Active', joined: 'Mar 5, 2023', stars: 5 },
+      { id: '#003', name: 'Robert Kim', email: 'robert@company.com', ini: 'RK', ibg: '#fde8ee', iclr: '#ff4c75', role: 'Manager', dept: 'Sales', status: 'Inactive', joined: 'Jun 18, 2022', stars: 3 },
+      { id: '#004', name: 'Maria Lee', email: 'maria@company.com', ini: 'ML', ibg: '#fff3cd', iclr: '#f0ad4e', role: 'Viewer', dept: 'HR', status: 'Active', joined: 'Sep 2, 2023', stars: 4 },
+      { id: '#005', name: 'Tom Chen', email: 'tom@company.com', ini: 'TC', ibg: '#e0f7fa', iclr: '#0aa2c0', role: 'Admin', dept: 'Engineering', status: 'Banned', joined: 'Nov 14, 2021', stars: 2 },
+      { id: '#006', name: 'Sarah Park', email: 'sarah@company.com', ini: 'SP', ibg: '#f3e5f5', iclr: '#9c27b0', role: 'Editor', dept: 'Design', status: 'Active', joined: 'Feb 28, 2024', stars: 5 },
+      { id: '#007', name: 'Linh Nguyen', email: 'linh@company.com', ini: 'LN', ibg: '#fce4ec', iclr: '#e91e63', role: 'Manager', dept: 'Finance', status: 'Active', joined: 'Apr 10, 2023', stars: 4 },
+      { id: '#008', name: 'Ben Taylor', email: 'ben@company.com', ini: 'BT', ibg: '#e8f5e9', iclr: '#388e3c', role: 'Viewer', dept: 'Operations', status: 'Inactive', joined: 'Jul 7, 2022', stars: 3 },
+      { id: '#009', name: 'Chris Evans', email: 'chris@company.com', ini: 'CE', ibg: '#e3f2fd', iclr: '#1976d2', role: 'Admin', dept: 'IT', status: 'Active', joined: 'Aug 20, 2023', stars: 4 },
+      { id: '#010', name: 'Diana Prince', email: 'diana@company.com', ini: 'DP', ibg: '#fff8e1', iclr: '#f57f17', role: 'Editor', dept: 'Legal', status: 'Active', joined: 'Oct 3, 2022', stars: 4 },
+      { id: '#011', name: 'Ethan Hunt', email: 'ethan@company.com', ini: 'EH', ibg: '#e8eaf6', iclr: '#3949ab', role: 'Manager', dept: 'Security', status: 'Active', joined: 'Dec 1, 2022', stars: 3 },
+      { id: '#012', name: 'Fiona Green', email: 'fiona@company.com', ini: 'FG', ibg: '#e0f2f1', iclr: '#00796b', role: 'Viewer', dept: 'Support', status: 'Active', joined: 'Jan 30, 2024', stars: 5 },
+      { id: '#013', name: 'George Black', email: 'george@company.com', ini: 'GB', ibg: '#f5f5f5', iclr: '#616161', role: 'Editor', dept: 'R&D', status: 'Inactive', joined: 'May 14, 2022', stars: 2 },
+      { id: '#014', name: 'Hannah White', email: 'hannah@company.com', ini: 'HW', ibg: '#e8f5e9', iclr: '#2e7d32', role: 'Admin', dept: 'Engineering', status: 'Active', joined: 'Mar 22, 2023', stars: 4 },
+      { id: '#015', name: 'Ivan Drago', email: 'ivan@company.com', ini: 'ID', ibg: '#fce4ec', iclr: '#c62828', role: 'Viewer', dept: 'Sales', status: 'Banned', joined: 'Feb 5, 2021', stars: 1 },
+      { id: '#016', name: 'Julia Roberts', email: 'julia@company.com', ini: 'JR', ibg: '#e1f5fe', iclr: '#0277bd', role: 'Editor', dept: 'Marketing', status: 'Active', joined: 'Jun 6, 2023', stars: 5 },
+      { id: '#017', name: 'Kevin Hart', email: 'kevin@company.com', ini: 'KH', ibg: '#fff3e0', iclr: '#e65100', role: 'Manager', dept: 'Operations', status: 'Active', joined: 'Sep 18, 2023', stars: 3 },
+      { id: '#018', name: 'Laura Palmer', email: 'laura@company.com', ini: 'LP', ibg: '#f3e5f5', iclr: '#6a1b9a', role: 'Viewer', dept: 'HR', status: 'Inactive', joined: 'Nov 11, 2022', stars: 2 },
+      { id: '#019', name: 'Mike Johnson', email: 'mike@company.com', ini: 'MJ', ibg: '#e8f5e9', iclr: '#1b5e20', role: 'Editor', dept: 'Finance', status: 'Active', joined: 'Jul 4, 2023', stars: 4 },
+      { id: '#020', name: 'Nina Simone', email: 'nina@company.com', ini: 'NS', ibg: '#ede7f6', iclr: '#4527a0', role: 'Admin', dept: 'Design', status: 'Active', joined: 'Oct 29, 2023', stars: 5 },
+    ];
+    const ROLE_BS = { Admin: 'bs-pri', Editor: 'bs-ok', Manager: 'bs-warn', Viewer: 'bs-info' };
+    const STAT_BS = { Active: 'bs-ok', Inactive: 'bs-warn', Banned: 'bs-err' };
+    let cur = 1, sCol = -1, sDir = 'asc';
+
+    function stars(n) { return '<span class="rat">' + '★'.repeat(n) + '</span><span class="rat-e">' + '★'.repeat(5 - n) + '</span>'; }
+    function getFiltered() {
+      const q = (document.getElementById('userSearch')?.value || '').toLowerCase();
+      return USERS.filter(u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || u.role.toLowerCase().includes(q) || u.dept.toLowerCase().includes(q) || u.status.toLowerCase().includes(q));
+    }
+    function sortTable(col) {
+      const ths = document.querySelectorAll('#usersTable thead th');
+      if (sCol === col) sDir = sDir === 'asc' ? 'desc' : 'asc'; else { sCol = col; sDir = 'asc'; }
+      ths.forEach((th, i) => { th.classList.remove('asc', 'desc'); if (i === col) th.classList.add(sDir); });
+      cur = 1; renderPage();
+    }
+    function renderTable() { cur = 1; renderPage(); }
+    function renderPage() {
+      let data = getFiltered();
+      const pp = parseInt(document.getElementById('perPage').value);
+      const keys = ['id', 'name', 'role', 'dept', 'status', 'joined'];
+      if (sCol >= 0 && sCol < keys.length) data.sort((a, b) => sDir === 'asc' ? a[keys[sCol]].localeCompare(b[keys[sCol]]) : b[keys[sCol]].localeCompare(a[keys[sCol]]));
+      const total = data.length, tp = Math.max(1, Math.ceil(total / pp));
+      if (cur > tp) cur = tp;
+      const st = (cur - 1) * pp, pg = data.slice(st, st + pp);
+      const tbody = document.getElementById('usersTbody');
+      tbody.innerHTML = pg.length === 0
+        ? `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-muted)"><i class="bi bi-search" style="font-size:24px;display:block;margin-bottom:8px;opacity:.4"></i>No users found</td></tr>`
+        : pg.map(u => `<tr>
+      <td><strong style="font-size:12px;color:var(--text-muted)">${u.id}</strong></td>
+      <td><div style="display:flex;align-items:center;gap:10px"><div style="width:34px;height:34px;border-radius:50%;background:${u.ibg};color:${u.iclr};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">${u.ini}</div><div><div style="font-weight:700;font-size:13.5px">${u.name}</div><div style="font-size:12px;color:var(--text-muted)">${u.email}</div></div></div></td>
+      <td><span class="bs ${ROLE_BS[u.role]}">${u.role}</span></td>
+      <td>${u.dept}</td>
+      <td><span class="bs ${STAT_BS[u.status]}">${u.status}</span></td>
+      <td style="white-space:nowrap">${u.joined}</td>
+      <td style="white-space:nowrap">${stars(u.stars)}</td>
+      <td><button class="aico me-1" style="background:rgba(65,84,241,.15);color:var(--primary)" title="View"><i class="bi bi-eye"></i></button><button class="aico me-1" style="background:rgba(255,193,7,.15);color:#f0ad4e" title="Edit"><i class="bi bi-pencil"></i></button><button class="aico" style="background:rgba(255,76,117,.15);color:var(--danger)" title="Delete" onclick="delRow('${u.id}')"><i class="bi bi-trash"></i></button></td>
+    </tr>`).join('');
+      document.getElementById('tableInfo').textContent = `Showing ${total === 0 ? 0 : st + 1}–${Math.min(st + pp, total)} of ${total} entries`;
+      document.getElementById('usersTotalBadge').textContent = total;
+      renderPg(tp);
+    }
+    function renderPg(tp) {
+      const wrap = document.getElementById('paginationWrap');
+      if (tp <= 1) { wrap.innerHTML = ''; return; }
+      let h = `<button class="pg-btn" onclick="goPage(${cur - 1})" ${cur === 1 ? 'disabled' : ''}><i class="bi bi-chevron-left"></i></button>`;
+      const pages = [];
+      if (tp <= 7) { for (let i = 1; i <= tp; i++)pages.push(i); }
+      else { pages.push(1); if (cur > 3) pages.push('...'); for (let i = Math.max(2, cur - 1); i <= Math.min(tp - 1, cur + 1); i++)pages.push(i); if (cur < tp - 2) pages.push('...'); pages.push(tp); }
+      pages.forEach(p => { h += p === '...' ? `<span class="pg-ellipsis">…</span>` : `<button class="pg-btn${p === cur ? ' active' : ''}" onclick="goPage(${p})">${p}</button>`; });
+      h += `<button class="pg-btn" onclick="goPage(${cur + 1})" ${cur === tp ? 'disabled' : ''}><i class="bi bi-chevron-right"></i></button>`;
+      wrap.innerHTML = h;
+    }
+    function goPage(p) { const tp = Math.ceil(getFiltered().length / parseInt(document.getElementById('perPage').value)); if (p < 1 || p > tp) return; cur = p; renderPage(); }
+    function delRow(id) { const i = USERS.findIndex(u => u.id === id); if (i !== -1 && confirm(`Delete ${USERS[i].name}?`)) { USERS.splice(i, 1); renderPage(); } }
+    function exportCSV() {
+      const data = getFiltered(), h = ['ID', 'Name', 'Email', 'Role', 'Department', 'Status', 'Joined'];
+      const csv = [h, ...data.map(u => [u.id, u.name, u.email, u.role, u.dept, u.status, u.joined])].map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+      const a = document.createElement('a'); a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv); a.download = 'users.csv'; a.click();
+    }
+    renderPage();
+  </script>
+</body>
+
+</html>

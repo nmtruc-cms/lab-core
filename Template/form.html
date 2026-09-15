@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>ModernAdmin – Forms</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+*{box-sizing:border-box}
+body{font-family:'Nunito',sans-serif;background:var(--bg-body);color:var(--text-body);margin:0;overflow-x:hidden;transition:background .25s,color .25s}
+#sidebar{position:fixed;top:0;left:0;width:var(--sidebar-width);height:100vh;background:var(--bg-sidebar);border-right:1px solid var(--border);z-index:999;transition:all .3s;overflow-y:auto;overflow-x:hidden}
+#sidebar.collapsed{width:var(--sidebar-collapsed-width)}
+#sidebar::-webkit-scrollbar{width:4px}#sidebar::-webkit-scrollbar-thumb{background:var(--thumb);border-radius:4px}
+.sidebar-logo{display:flex;align-items:center;padding:16px 20px;height:var(--topbar-height);border-bottom:1px solid var(--border);text-decoration:none;overflow:hidden;white-space:nowrap}
+.logo-icon{width:36px;height:36px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-size:18px;font-weight:800}
+.logo-text{font-size:18px;font-weight:800;color:var(--text-heading);margin-left:10px;transition:opacity .3s}
+#sidebar.collapsed .logo-text{opacity:0;width:0}
+.sidebar-nav{padding:10px 0;list-style:none;margin:0}
+.nav-heading{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;padding:14px 20px 6px;white-space:nowrap;transition:opacity .3s}
+#sidebar.collapsed .nav-heading{opacity:0}
+.nav-item{margin:2px 8px}
+.nav-link{display:flex;align-items:center;padding:10px 12px;border-radius:8px;color:var(--text-nav);font-size:14px;font-weight:600;text-decoration:none;white-space:nowrap;overflow:hidden;transition:all .2s;cursor:pointer;gap:10px}
+.nav-link i{font-size:16px;min-width:20px;text-align:center;flex-shrink:0}
+.nav-link:hover{background:var(--primary-light);color:var(--primary)}
+.nav-link.active{background:var(--primary);color:#fff}
+.nav-link .nav-label{transition:opacity .3s}
+#sidebar.collapsed .nav-link .nav-label,#sidebar.collapsed .nav-link .badge,#sidebar.collapsed .nav-link.has-sub .arrow{display:none}
+.nav-link .badge{margin-left:auto;font-size:10px;padding:2px 7px}
+.nav-link.has-sub .arrow{margin-left:auto;font-size:12px;transition:transform .2s}
+.nav-link.has-sub.open .arrow{transform:rotate(90deg)}
+.sub-nav{list-style:none;padding:0 0 0 42px;margin:0;overflow:hidden;max-height:0;transition:max-height .3s}
+.sub-nav.open{max-height:300px}
+#sidebar.collapsed .sub-nav{display:none}
+.sub-nav li a{display:block;padding:7px 10px;font-size:13px;color:var(--text-sub);text-decoration:none;border-radius:6px;font-weight:600}
+.sub-nav li a:hover,.sub-nav li a.active{color:var(--primary)}
+#topbar{position:fixed;top:0;left:var(--sidebar-width);right:0;height:var(--topbar-height);background:var(--bg-topbar);border-bottom:1px solid var(--border);z-index:998;display:flex;align-items:center;padding:0 20px;gap:10px;transition:left .3s,background .25s}
+#topbar.collapsed{left:var(--sidebar-collapsed-width)}
+.toggle-btn{background:none;border:none;padding:6px 8px;border-radius:6px;color:var(--text-nav);font-size:20px;cursor:pointer;line-height:1;flex-shrink:0}
+.toggle-btn:hover{background:var(--primary-light);color:var(--primary)}
+.search-bar{flex:1;max-width:340px;position:relative}
+.search-bar input{width:100%;padding:7px 14px 7px 36px;border:1px solid var(--border);border-radius:25px;font-size:13px;font-family:'Nunito',sans-serif;background:var(--bg-input);color:var(--text-body);outline:none;transition:border .2s}
+.search-bar input:focus{border-color:var(--primary)}
+.search-bar input::placeholder{color:var(--text-muted)}
+.search-bar i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:14px}
+.topbar-actions{display:flex;align-items:center;gap:4px;margin-left:auto}
+.action-btn,.theme-btn{position:relative;width:38px;height:38px;background:none;border:none;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text-nav);font-size:18px;cursor:pointer;transition:background .2s}
+.action-btn:hover,.theme-btn:hover{background:var(--primary-light);color:var(--primary)}
+.theme-btn{font-size:17px}[data-theme="dark"] .theme-btn{color:#f5c518}
+.badge-count{position:absolute;top:3px;right:2px;background:var(--danger);color:#fff;font-size:9px;font-weight:700;padding:1px 4px;border-radius:10px;line-height:1.4}
+.badge-dot{position:absolute;top:6px;right:6px;width:8px;height:8px;background:var(--danger);border-radius:50%;border:2px solid var(--dot-border)}
+.profile-btn{display:flex;align-items:center;gap:8px;padding:4px 8px 4px 4px;border-radius:25px;border:none;background:none;cursor:pointer}
+.profile-btn:hover{background:var(--primary-light)}
+.profile-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:700;flex-shrink:0}
+.pname{font-size:13px;font-weight:700;color:var(--text-heading);line-height:1.2}
+.prole{font-size:11px;color:var(--text-muted);line-height:1.2}
+.topbar-dropdown{position:relative}
+.dropdown-panel{position:absolute;top:calc(100% + 8px);right:0;width:220px;background:var(--bg-card);border-radius:12px;box-shadow:var(--shadow);border:1px solid var(--border);z-index:1000;display:none;overflow:hidden}
+.topbar-dropdown.open .dropdown-panel{display:block}
+.dp-hdr{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:4px}
+.dp-item{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--border-row);cursor:pointer;font-size:13px;font-weight:600;color:var(--text-body);transition:background .15s}
+.dp-item:last-child{border-bottom:none}
+.dp-item:hover{background:var(--bg-hover)}
+#main{margin-left:var(--sidebar-width);margin-top:var(--topbar-height);padding:24px;transition:margin-left .3s;min-height:calc(100vh - var(--topbar-height))}
+#main.collapsed{margin-left:var(--sidebar-collapsed-width)}
+.page-title h1{font-size:22px;font-weight:800;color:var(--text-heading);margin:0 0 4px}
+.breadcrumb{margin:0;font-size:13px}
+.breadcrumb-item+.breadcrumb-item::before{color:var(--text-muted)}
+.breadcrumb-item a{color:var(--primary);text-decoration:none}
+.breadcrumb-item.active{color:var(--text-muted)}
+.card-custom{background:var(--bg-card);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:24px;transition:background .25s}
+.card-hdr{background:var(--bg-card);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;transition:background .25s}
+.card-title{font-size:16px;font-weight:800;color:var(--text-heading);margin:0}
+.card-body{padding:24px}
+/* form */
+.form-label{font-size:13.5px;font-weight:700;color:var(--text-body);margin-bottom:6px}
+.form-control,.form-select{font-family:'Nunito',sans-serif;font-size:13.5px;border:1px solid var(--border);border-radius:8px;padding:9px 14px;background:var(--bg-input);color:var(--text-body);transition:border-color .2s,box-shadow .2s}
+.form-control:focus,.form-select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(65,84,241,.1);outline:none;background:var(--bg-input)}
+.form-control.is-valid{border-color:var(--success)}
+.form-control.is-invalid{border-color:var(--danger)}
+.form-control.is-valid:focus{box-shadow:0 0 0 3px rgba(46,202,106,.1)}
+.form-control.is-invalid:focus{box-shadow:0 0 0 3px rgba(255,76,117,.1)}
+.valid-feedback{color:var(--success);font-size:12px;font-weight:600}
+.invalid-feedback{color:var(--danger);font-size:12px;font-weight:600}
+.form-text{font-size:12px;color:var(--text-muted);font-weight:600}
+.input-group .input-group-text{background:var(--bg-thead);border:1px solid var(--border);color:var(--text-muted);font-size:14px;padding:9px 14px;transition:background .25s}
+.form-check-input{width:16px;height:16px;margin-top:2px;cursor:pointer;background-color:var(--bg-input);border-color:var(--border)}
+.form-check-input:checked{background-color:var(--primary);border-color:var(--primary)}
+.form-check-input:focus{box-shadow:0 0 0 3px rgba(65,84,241,.15)}
+.form-check-label{font-size:13.5px;font-weight:600;cursor:pointer;color:var(--text-body)}
+.form-switch .form-check-input{width:36px;height:20px}
+.form-switch .form-check-input:checked{background-color:var(--primary);border-color:var(--primary)}
+/* tags */
+.tags-input{display:flex;flex-wrap:wrap;gap:6px;align-items:center;border:1px solid var(--border);border-radius:8px;padding:8px 12px;min-height:42px;cursor:text;transition:border-color .2s;background:var(--bg-input)}
+.tags-input:focus-within{border-color:var(--primary);box-shadow:0 0 0 3px rgba(65,84,241,.1)}
+.tag{display:inline-flex;align-items:center;gap:5px;background:var(--primary-light);color:var(--primary);font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px}
+.tag button{background:none;border:none;color:var(--primary);font-size:14px;cursor:pointer;padding:0;line-height:1}
+.tags-input input{border:none;outline:none;font-family:'Nunito';font-size:13.5px;flex:1;min-width:80px;background:transparent;color:var(--text-body)}
+.tags-input input::placeholder{color:var(--text-muted)}
+/* color swatches */
+.clr-dot{display:inline-block;width:28px;height:28px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:border-color .15s}
+.clr-dot.sel{border-color:var(--text-heading)}
+.clr-dot:hover{transform:scale(1.1)}
+/* wizard */
+.wizard-steps{display:flex;align-items:center;justify-content:center;margin-bottom:28px}
+.wstep{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;position:relative}
+.wstep:not(:last-child)::after{content:'';position:absolute;top:18px;left:50%;width:100%;height:2px;background:var(--border);z-index:0}
+.wstep.done:not(:last-child)::after,.wstep.active:not(:last-child)::after{background:var(--primary)}
+.wcirc{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;z-index:1;border:2px solid var(--border);background:var(--bg-card);color:var(--text-muted);transition:all .2s}
+.wstep.done .wcirc{background:var(--primary);border-color:var(--primary);color:#fff}
+.wstep.active .wcirc{background:var(--primary);border-color:var(--primary);color:#fff;box-shadow:0 0 0 4px rgba(65,84,241,.2)}
+.wlbl{font-size:11.5px;font-weight:700;color:var(--text-muted);text-align:center}
+.wstep.active .wlbl,.wstep.done .wlbl{color:var(--primary)}
+/* divider */
+.sdiv{display:flex;align-items:center;gap:12px;margin:20px 0 16px}
+.sdiv span{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);white-space:nowrap}
+.sdiv::before,.sdiv::after{content:'';flex:1;height:1px;background:var(--border)}
+.footer-c{background:var(--bg-card);border-top:1px solid var(--border);padding:16px 24px;font-size:13px;color:var(--text-muted);border-radius:12px;transition:background .25s}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:998}
+.sidebar-overlay.active{display:block}
+@media(max-width:991px){
+  #sidebar{transform:translateX(-100%);width:var(--sidebar-width)!important}
+  #sidebar.mobile-open{transform:translateX(0)}
+  #topbar{left:0!important}
+  #main{margin-left:0!important}
+}
+</style>
+</head>
+<body>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
+
+<nav id="sidebar">
+  <a class="sidebar-logo" href="index.html"><div class="logo-icon">M</div><span class="logo-text">ModernAdmin</span></a>
+  <ul class="sidebar-nav">
+    <li class="nav-heading">Main</li>
+    <li class="nav-item"><a class="nav-link" href="index.html"><i class="bi bi-grid-1x2"></i><span class="nav-label">Dashboard</span></a></li>
+    <li class="nav-heading">Pages</li>
+    <li class="nav-item"><a class="nav-link has-sub" onclick="toggleSub(this)"><i class="bi bi-people"></i><span class="nav-label">Users</span><i class="bi bi-chevron-right arrow"></i></a><ul class="sub-nav"><li><a href="#">User List</a></li><li><a href="#">User Profile</a></li></ul></li>
+    <li class="nav-item"><a class="nav-link has-sub" onclick="toggleSub(this)"><i class="bi bi-box-seam"></i><span class="nav-label">Products</span><i class="bi bi-chevron-right arrow"></i></a><ul class="sub-nav"><li><a href="#">Product List</a></li><li><a href="#">Add Product</a></li></ul></li>
+    <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-cart3"></i><span class="nav-label">Orders</span><span class="badge bg-warning text-dark">12</span></a></li>
+    <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-chat-dots"></i><span class="nav-label">Messages</span><span class="badge bg-danger">5</span></a></li>
+    <li class="nav-heading">Components</li>
+    <li class="nav-item"><a class="nav-link" href="tables.html"><i class="bi bi-table"></i><span class="nav-label">Tables</span></a></li>
+    <li class="nav-item"><a class="nav-link has-sub open active" onclick="toggleSub(this)"><i class="bi bi-ui-checks"></i><span class="nav-label">Forms</span><i class="bi bi-chevron-right arrow"></i></a><ul class="sub-nav open"><li><a href="forms.html" class="active">Form Elements</a></li><li><a href="#">Validation</a></li></ul></li>
+    <li class="nav-heading">Misc</li>
+    <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-gear"></i><span class="nav-label">Settings</span></a></li>
+    <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-box-arrow-right"></i><span class="nav-label">Logout</span></a></li>
+  </ul>
+</nav>
+
+<header id="topbar">
+  <button class="toggle-btn" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+  <div class="search-bar d-none d-md-block"><i class="bi bi-search"></i><input type="text" placeholder="Search..."/></div>
+  <div class="topbar-actions ms-auto">
+    <button class="theme-btn" onclick="toggleTheme()" title="Tối / Sáng"><i id="themeIcon" class="bi bi-moon-stars-fill"></i></button>
+    <button class="action-btn"><i class="bi bi-bell"></i><span class="badge-count">4</span></button>
+    <button class="action-btn"><i class="bi bi-chat-text"></i><span class="badge-dot"></span></button>
+    <div class="topbar-dropdown" id="profDD">
+      <button class="profile-btn" onclick="toggleDropdown('profDD')">
+        <div class="profile-avatar">AD</div>
+        <div class="d-none d-sm-block"><div class="pname">Admin User</div><div class="prole">Administrator</div></div>
+        <i class="bi bi-chevron-down ms-1 d-none d-sm-block" style="font-size:11px;color:var(--text-muted)"></i>
+      </button>
+      <div class="dropdown-panel">
+        <div class="dp-hdr"><div style="font-size:15px;font-weight:800;color:var(--text-heading)">Admin User</div><div style="font-size:12px;font-weight:400;color:var(--text-muted)">admin@modernapp.com</div></div>
+        <div class="dp-item"><i class="bi bi-person me-2"></i>My Profile</div>
+        <div class="dp-item"><i class="bi bi-gear me-2"></i>Settings</div>
+        <div class="dp-item" style="color:var(--danger)"><i class="bi bi-box-arrow-right me-2"></i>Logout</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <div class="d-flex align-items-start justify-content-between mb-4">
+    <div class="page-title"><h1>Form Elements</h1><nav><ol class="breadcrumb"><li class="breadcrumb-item"><a href="index.html">Home</a></li><li class="breadcrumb-item">Forms</li><li class="breadcrumb-item active">Elements</li></ol></nav></div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-sm btn-outline-secondary rounded-pill px-3"><i class="bi bi-arrow-counterclockwise me-1"></i>Reset</button>
+      <button class="btn btn-sm btn-primary rounded-pill px-3"><i class="bi bi-check-lg me-1"></i>Save All</button>
+    </div>
+  </div>
+
+  <!-- Wizard -->
+  <div class="card-custom">
+    <div class="card-hdr"><h5 class="card-title"><i class="bi bi-ui-checks-grid me-2" style="color:var(--primary)"></i>Multi-Step Form Wizard</h5></div>
+    <div class="card-body">
+      <div class="wizard-steps">
+        <div class="wstep done"><div class="wcirc"><i class="bi bi-check-lg"></i></div><div class="wlbl">Account Info</div></div>
+        <div class="wstep active"><div class="wcirc">2</div><div class="wlbl">Personal</div></div>
+        <div class="wstep"><div class="wcirc">3</div><div class="wlbl">Payment</div></div>
+        <div class="wstep"><div class="wcirc">4</div><div class="wlbl">Confirm</div></div>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6"><label class="form-label">First Name <span style="color:var(--danger)">*</span></label><input type="text" class="form-control" value="Admin"/></div>
+        <div class="col-md-6"><label class="form-label">Last Name <span style="color:var(--danger)">*</span></label><input type="text" class="form-control" value="User"/></div>
+        <div class="col-md-6"><label class="form-label">Date of Birth</label><input type="date" class="form-control" value="1990-06-15"/></div>
+        <div class="col-md-6"><label class="form-label">Gender</label><select class="form-select"><option>Select gender</option><option selected>Male</option><option>Female</option><option>Prefer not to say</option></select></div>
+        <div class="col-12"><label class="form-label">Bio</label><textarea class="form-control" rows="3" placeholder="Write a short bio..."></textarea><div class="form-text">Maximum 250 characters.</div></div>
+      </div>
+      <div class="d-flex justify-content-between mt-4">
+        <button class="btn btn-outline-secondary rounded-pill px-4"><i class="bi bi-arrow-left me-1"></i>Previous</button>
+        <button class="btn btn-primary rounded-pill px-4">Next Step <i class="bi bi-arrow-right ms-1"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 1 -->
+  <div class="row g-3">
+    <div class="col-12 col-lg-6">
+      <div class="card-custom h-100">
+        <div class="card-hdr"><h5 class="card-title">Basic Form Elements</h5></div>
+        <div class="card-body">
+          <div class="mb-3"><label class="form-label">Email Address</label><input type="email" class="form-control" placeholder="name@example.com"/></div>
+          <div class="mb-3">
+            <label class="form-label">Password</label>
+            <div class="input-group">
+              <input type="password" class="form-control" id="pwdInput" placeholder="Enter password" style="border-radius:8px 0 0 8px"/>
+              <span class="input-group-text" style="border-radius:0 8px 8px 0;cursor:pointer;border-left:none" onclick="togglePwd()"><i class="bi bi-eye" id="pwdIcon"></i></span>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Phone Number</label>
+            <div class="input-group">
+              <span class="input-group-text" style="border-radius:8px 0 0 8px;border-right:none"><i class="bi bi-telephone"></i></span>
+              <input type="tel" class="form-control" placeholder="+84 xxx xxx xxx" style="border-radius:0 8px 8px 0;border-left:none"/>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Website</label>
+            <div class="input-group">
+              <span class="input-group-text" style="border-radius:8px 0 0 8px;border-right:none;font-size:12px;font-weight:700">https://</span>
+              <input type="text" class="form-control" placeholder="yourwebsite.com" style="border-radius:0 8px 8px 0;border-left:none"/>
+            </div>
+          </div>
+          <div class="mb-3"><label class="form-label">Description</label><textarea class="form-control" rows="4" placeholder="Write something..."></textarea></div>
+          <div><label class="form-label">Profile Picture</label><input type="file" class="form-control" accept="image/*"/><div class="form-text">JPG, PNG — max 2MB.</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-6">
+      <div class="card-custom mb-3">
+        <div class="card-hdr"><h5 class="card-title">Select & Date Inputs</h5></div>
+        <div class="card-body">
+          <div class="mb-3"><label class="form-label">Country</label><select class="form-select"><option value="">-- Select country --</option><option value="vn" selected>Vietnam</option><option value="us">United States</option><option value="uk">United Kingdom</option><option value="sg">Singapore</option><option value="jp">Japan</option></select></div>
+          <div class="mb-3"><label class="form-label">Multiple Select</label><select class="form-select" multiple size="4"><option selected>JavaScript</option><option selected>PHP</option><option>Python</option><option>Java</option><option>Go</option><option>Rust</option></select><div class="form-text">Ctrl/Cmd để chọn nhiều.</div></div>
+          <div class="row g-3">
+            <div class="col-md-6"><label class="form-label">Date</label><input type="date" class="form-control" value="2024-03-15"/></div>
+            <div class="col-md-6"><label class="form-label">Time</label><input type="time" class="form-control" value="09:30"/></div>
+            <div class="col-12"><label class="form-label">Date &amp; Time</label><input type="datetime-local" class="form-control" value="2024-03-15T09:30"/></div>
+          </div>
+        </div>
+      </div>
+      <div class="card-custom">
+        <div class="card-hdr"><h5 class="card-title">Tags Input</h5></div>
+        <div class="card-body">
+          <label class="form-label">Skills / Tags</label>
+          <div class="tags-input" id="tagsContainer" onclick="document.getElementById('tagInput').focus()">
+            <span class="tag">Bootstrap<button onclick="removeTag(this)">×</button></span>
+            <span class="tag">PHP<button onclick="removeTag(this)">×</button></span>
+            <span class="tag">MySQL<button onclick="removeTag(this)">×</button></span>
+            <input type="text" id="tagInput" placeholder="Add tag..." onkeydown="addTag(event)"/>
+          </div>
+          <div class="form-text">Press Enter to add a tag.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 2: checks / radio / switches -->
+  <div class="row g-3 mt-0">
+    <div class="col-12 col-md-4">
+      <div class="card-custom h-100">
+        <div class="card-hdr"><h5 class="card-title">Checkboxes</h5></div>
+        <div class="card-body">
+          <div class="sdiv"><span>Default</span></div>
+          <div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="cb1" checked/><label class="form-check-label" for="cb1">Option one (checked)</label></div>
+          <div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="cb2"/><label class="form-check-label" for="cb2">Option two</label></div>
+          <div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="cb3" disabled/><label class="form-check-label" for="cb3" style="color:var(--text-muted)">Disabled</label></div>
+          <div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="cb4" checked disabled/><label class="form-check-label" for="cb4" style="color:var(--text-muted)">Disabled + checked</label></div>
+          <div class="sdiv"><span>Inline</span></div>
+          <div class="d-flex gap-3">
+            <div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" id="cbi1" checked/><label class="form-check-label" for="cbi1">A</label></div>
+            <div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" id="cbi2"/><label class="form-check-label" for="cbi2">B</label></div>
+            <div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" id="cbi3" checked/><label class="form-check-label" for="cbi3">C</label></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="card-custom h-100">
+        <div class="card-hdr"><h5 class="card-title">Radio Buttons</h5></div>
+        <div class="card-body">
+          <div class="sdiv"><span>Default</span></div>
+          <div class="form-check mb-2"><input class="form-check-input" type="radio" name="r1" id="r1" checked/><label class="form-check-label" for="r1">Option one (selected)</label></div>
+          <div class="form-check mb-2"><input class="form-check-input" type="radio" name="r1" id="r2"/><label class="form-check-label" for="r2">Option two</label></div>
+          <div class="form-check mb-2"><input class="form-check-input" type="radio" name="r1" id="r3" disabled/><label class="form-check-label" for="r3" style="color:var(--text-muted)">Disabled</label></div>
+          <div class="sdiv"><span>Button Group</span></div>
+          <div class="btn-group w-100">
+            <input type="radio" class="btn-check" name="bg" id="bg1" checked/><label class="btn btn-outline-primary" for="bg1">Monthly</label>
+            <input type="radio" class="btn-check" name="bg" id="bg2"/><label class="btn btn-outline-primary" for="bg2">Quarterly</label>
+            <input type="radio" class="btn-check" name="bg" id="bg3"/><label class="btn btn-outline-primary" for="bg3">Yearly</label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="card-custom h-100">
+        <div class="card-hdr"><h5 class="card-title">Switches &amp; Range</h5></div>
+        <div class="card-body">
+          <div class="sdiv"><span>Toggles</span></div>
+          <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox" id="sw1" checked/><label class="form-check-label" for="sw1">Email notifications <span style="background:rgba(46,202,106,.12);color:var(--success);padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700">On</span></label></div>
+          <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox" id="sw2"/><label class="form-check-label" for="sw2">Dark mode</label></div>
+          <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox" id="sw3" checked/><label class="form-check-label" for="sw3">Two-factor auth</label></div>
+          <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox" id="sw4" disabled/><label class="form-check-label" for="sw4" style="color:var(--text-muted)">Beta features (locked)</label></div>
+          <div class="sdiv"><span>Range Slider</span></div>
+          <label class="form-label d-flex justify-content-between">Volume <strong id="rangeVal">70</strong></label>
+          <input type="range" class="form-range" min="0" max="100" value="70" oninput="document.getElementById('rangeVal').textContent=this.value"/>
+          <div class="d-flex justify-content-between mt-1"><small style="color:var(--text-muted)">0</small><small style="color:var(--text-muted)">50</small><small style="color:var(--text-muted)">100</small></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 3: Validation + Color -->
+  <div class="row g-3 mt-0">
+    <div class="col-12 col-lg-7">
+      <div class="card-custom">
+        <div class="card-hdr"><h5 class="card-title"><i class="bi bi-shield-check me-2" style="color:var(--success)"></i>Form Validation States</h5></div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-6"><label class="form-label">Valid Input</label><input type="text" class="form-control is-valid" value="john.doe@email.com"/><div class="valid-feedback"><i class="bi bi-check-circle me-1"></i>Looks good!</div></div>
+            <div class="col-md-6"><label class="form-label">Invalid Input</label><input type="text" class="form-control is-invalid" value="invalid-email"/><div class="invalid-feedback"><i class="bi bi-x-circle me-1"></i>Please enter a valid email address.</div></div>
+            <div class="col-md-6">
+              <label class="form-label">Username <span style="color:var(--danger)">*</span></label>
+              <div class="input-group"><span class="input-group-text" style="border-radius:8px 0 0 8px;border-right:none"><i class="bi bi-person"></i></span><input type="text" class="form-control is-valid" value="admin_user" style="border-left:none;border-radius:0 8px 8px 0"/></div>
+              <div class="valid-feedback"><i class="bi bi-check-circle me-1"></i>Username is available.</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Password <span style="color:var(--danger)">*</span></label>
+              <div class="input-group"><span class="input-group-text" style="border-radius:8px 0 0 8px;border-right:none"><i class="bi bi-lock"></i></span><input type="password" class="form-control is-invalid" value="123" style="border-left:none;border-radius:0 8px 8px 0"/></div>
+              <div class="invalid-feedback"><i class="bi bi-x-circle me-1"></i>Password must be at least 8 characters.</div>
+            </div>
+            <div class="col-12">
+              <div class="form-check"><input class="form-check-input is-invalid" type="checkbox" id="terms"/><label class="form-check-label" for="terms">I agree to the <a href="#" style="color:var(--primary)">Terms and Conditions</a></label><div class="invalid-feedback">You must agree before submitting.</div></div>
+            </div>
+            <div class="col-12 mt-1"><button class="btn btn-primary rounded-pill px-4 me-2"><i class="bi bi-check-lg me-1"></i>Submit</button><button class="btn btn-outline-secondary rounded-pill px-4">Cancel</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-5">
+      <div class="card-custom mb-3">
+        <div class="card-hdr"><h5 class="card-title">Numeric &amp; Special</h5></div>
+        <div class="card-body">
+          <div class="mb-3"><label class="form-label">Number</label><input type="number" class="form-control" min="0" max="100" value="42"/></div>
+          <div class="mb-3">
+            <label class="form-label">Price</label>
+            <div class="input-group">
+              <span class="input-group-text" style="border-radius:8px 0 0 8px;border-right:none">$</span>
+              <input type="number" class="form-control" placeholder="0.00" step="0.01" style="border-left:none;border-right:none;border-radius:0"/>
+              <span class="input-group-text" style="border-radius:0 8px 8px 0;border-left:none;font-size:12px;font-weight:700">USD</span>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Color Picker</label>
+            <div class="d-flex align-items-center gap-3">
+              <input type="color" id="colorPicker" value="#4154f1" style="width:46px;height:38px;padding:3px;border-radius:8px;border:1px solid var(--border);background:var(--bg-input);cursor:pointer"/>
+              <div class="d-flex gap-2 flex-wrap">
+                <span class="clr-dot sel" style="background:#4154f1" onclick="pickColor(this,'#4154f1')"></span>
+                <span class="clr-dot" style="background:#2eca6a" onclick="pickColor(this,'#2eca6a')"></span>
+                <span class="clr-dot" style="background:#ff771d" onclick="pickColor(this,'#ff771d')"></span>
+                <span class="clr-dot" style="background:#ff4c75" onclick="pickColor(this,'#ff4c75')"></span>
+                <span class="clr-dot" style="background:#0aa2c0" onclick="pickColor(this,'#0aa2c0')"></span>
+                <span class="clr-dot" style="background:#9c27b0" onclick="pickColor(this,'#9c27b0')"></span>
+              </div>
+            </div>
+          </div>
+          <div><label class="form-label">Search</label><input type="search" class="form-control" placeholder="Search..." value="admin"/></div>
+        </div>
+      </div>
+      <div class="card-custom">
+        <div class="card-hdr"><h5 class="card-title">Floating Labels</h5></div>
+        <div class="card-body">
+          <div class="form-floating mb-3"><input type="email" class="form-control" id="fle" placeholder="x" value="admin@site.com"/><label for="fle">Email address</label></div>
+          <div class="form-floating mb-3"><input type="password" class="form-control" id="flp" placeholder="x"/><label for="flp">Password</label></div>
+          <div class="form-floating"><select class="form-select" id="fls"><option value="">Choose…</option><option selected>Administrator</option><option>Editor</option><option>Viewer</option></select><label for="fls">Role</label></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-c d-flex flex-wrap justify-content-between align-items-center gap-2 mt-2">
+    <div>&copy; 2024 <strong>ModernAdmin</strong>. All rights reserved.</div>
+    <div>Built with <span style="color:var(--danger)">♥</span> Bootstrap 5</div>
+  </div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script src="shared.js"></script>
+<script>
+function togglePwd(){
+  const i=document.getElementById('pwdInput'),ic=document.getElementById('pwdIcon');
+  i.type=i.type==='password'?'text':'password';
+  ic.className=i.type==='password'?'bi bi-eye':'bi bi-eye-slash';
+}
+function addTag(e){
+  if(e.key!=='Enter')return;e.preventDefault();
+  const v=e.target.value.trim();if(!v)return;
+  const t=document.createElement('span');t.className='tag';
+  t.innerHTML=`${v}<button onclick="removeTag(this)">×</button>`;
+  document.getElementById('tagsContainer').insertBefore(t,e.target);
+  e.target.value='';
+}
+function removeTag(btn){btn.parentElement.remove();}
+function pickColor(el,c){
+  document.querySelectorAll('.clr-dot').forEach(d=>d.classList.remove('sel'));
+  el.classList.add('sel');
+  document.getElementById('colorPicker').value=c;
+}
+</script>
+</body>
+</html>

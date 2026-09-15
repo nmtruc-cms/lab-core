@@ -1,0 +1,2698 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>
+    (function () {
+      const fallbackTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+
+      try {
+        const savedTheme = localStorage.getItem('sqs-admin-theme');
+        if (savedTheme) {
+          document.documentElement.setAttribute('data-theme', savedTheme);
+          return;
+        }
+      } catch (err) {
+        // Fallback to the default theme when storage is unavailable.
+      }
+
+      document.documentElement.setAttribute('data-theme', fallbackTheme);
+    })();
+  </script>
+  <title>SQS Admin – Dashboard</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <style>
+    /* ═══════════════════════════════════════════
+       THEMES
+    ═══════════════════════════════════════════ */
+    [data-theme="dark"] {
+      --bg: #0A0F1E;
+      --bg2: #0D1526;
+      --sidebar: #080D1A;
+      --card-bg: #111827;
+      --border: #1E2D45;
+      --border2: #152038;
+      --accent: #00D4FF;
+      --accent2: #00B4A0;
+      --muted: #8A99B3;
+      --text: #F0F6FF;
+      --topbar-bg: rgba(8, 13, 26, .92);
+      --grid-line: rgba(0, 212, 255, .025);
+      --dropdown: #0D1526;
+      --hover: rgba(255, 255, 255, .04);
+      --sub-tint: rgba(0, 212, 255, .05);
+    }
+
+    [data-theme="light"] {
+      --bg: #EEF3FA;
+      --bg2: #FFFFFF;
+      --sidebar: #1B2B44;
+      --card-bg: #FFFFFF;
+      --border: #CBD8EA;
+      --border2: #E0EAF4;
+      --accent: #0099CC;
+      --accent2: #00897B;
+      --muted: #5E738C;
+      --text: #22c1cc;
+      --topbar-bg: rgba(255, 255, 255, .95);
+      --grid-line: rgba(0, 153, 204, .03);
+      --dropdown: #FFFFFF;
+      --hover: rgba(0, 0, 0, .03);
+      --sub-tint: rgba(0, 153, 204, .06);
+    }
+
+
+
+    /* ═══════════════════════════════════════════
+       BASE
+    ═══════════════════════════════════════════ */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      overflow-x: hidden;
+      transition: background .3s, color .3s;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background-image: linear-gradient(var(--grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+      background-size: 50px 50px;
+    }
+
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg2);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent);
+    }
+
+    /* ═══════════════════════════════════════════
+       LAYOUT
+    ═══════════════════════════════════════════ */
+    .layout {
+      display: flex;
+      height: 100vh;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ═══════════════════════════════════════════
+       SIDEBAR
+    ═══════════════════════════════════════════ */
+    .sidebar {
+      width: 240px;
+      background: var(--sidebar);
+      border-right: 1px solid var(--border2);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      transition: width .3s cubic-bezier(.4, 0, .2, 1),
+        opacity .3s, border-color .3s;
+      position: relative;
+      z-index: 100;
+    }
+
+    /* ① Desktop hide — width → 0 */
+    .sidebar.hidden {
+      width: 0 !important;
+      opacity: 0;
+      border-right-color: transparent;
+      pointer-events: none;
+    }
+
+    /* Mobile */
+    @media(max-width:768px) {
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 240px !important;
+        opacity: 1 !important;
+        transform: translateX(-100%);
+        z-index: 500;
+        transition: transform .3s cubic-bezier(.4, 0, .2, 1);
+        pointer-events: auto;
+      }
+
+      .sidebar.mobile-open {
+        transform: translateX(0);
+      }
+    }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .55);
+      z-index: 499;
+      backdrop-filter: blur(2px);
+    }
+
+    .sidebar-overlay.active {
+      display: block;
+    }
+
+    /* Logo */
+    .sidebar-logo {
+      padding: 1rem 1rem 1rem 1.2rem;
+      border-bottom: 1px solid var(--border2);
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      min-height: 60px;
+      flex-shrink: 0;
+    }
+
+    .logo-mark {
+      width: 34px;
+      height: 34px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Space Mono', monospace;
+      font-size: .68rem;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .logo-text {
+      font-family: 'Space Mono', monospace;
+      font-size: .88rem;
+      font-weight: 700;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .logo-text small {
+      display: block;
+      font-size: .48rem;
+      color: var(--muted);
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 400;
+    }
+
+    /* Nav */
+    .sidebar-section {
+      padding: .75rem 0 .5rem;
+      flex: 1;
+    }
+
+    .sidebar-label {
+      font-size: .56rem;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: .8rem 1.2rem .3rem;
+      white-space: nowrap;
+      overflow: hidden;
+      font-family: 'Space Mono', monospace;
+      opacity: .55;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: .7rem;
+      padding: .54rem 1.2rem;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: .81rem;
+      font-weight: 500;
+      border-left: 2px solid transparent;
+      transition: all .18s;
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .nav-item:hover {
+      color: var(--text);
+      background: var(--hover);
+      border-left-color: var(--border);
+    }
+
+    .nav-item.active {
+      color: var(--accent);
+      background: var(--sub-tint);
+      border-left-color: var(--accent);
+    }
+
+    .nav-item .ni {
+      width: 15px;
+      text-align: center;
+      flex-shrink: 0;
+      font-size: .8rem;
+    }
+
+    .nav-label {
+      flex: 1;
+    }
+
+    .nav-badge {
+      min-width: 18px;
+      height: 18px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .57rem;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+      padding: 0 4px;
+    }
+
+    .nav-badge.red {
+      background: #EF4444;
+    }
+
+    .nav-badge.amber {
+      background: #FBBF24;
+      color: #111;
+    }
+
+    .nav-chevron {
+      font-size: .58rem;
+      color: var(--muted);
+      transition: transform .25s;
+      flex-shrink: 0;
+    }
+
+    .nav-item.open .nav-chevron {
+      transform: rotate(90deg);
+    }
+
+    /* ② Sub menus */
+    .sub-menu {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height .3s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .sub-menu.open {
+      max-height: 220px;
+    }
+
+    .sub-item {
+      display: flex;
+      align-items: center;
+      gap: .55rem;
+      padding: .42rem 1.2rem .42rem 2.75rem;
+      color: var(--muted);
+      font-size: .77rem;
+      font-weight: 400;
+      text-decoration: none;
+      cursor: pointer;
+      transition: color .15s, background .15s;
+      border-left: 2px solid transparent;
+      white-space: nowrap;
+    }
+
+    .sub-item::before {
+      content: '';
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--border);
+      flex-shrink: 0;
+      transition: background .15s;
+    }
+
+    .sub-item:hover {
+      color: var(--text);
+      background: var(--hover);
+    }
+
+    .sub-item:hover::before {
+      background: var(--accent);
+    }
+
+    .sub-item.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+      background: var(--sub-tint);
+    }
+
+    .sub-item.active::before {
+      background: var(--accent);
+    }
+
+    /* Sidebar footer */
+    .sidebar-footer {
+      padding: .85rem;
+      border-top: 1px solid var(--border2);
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .user-card {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      padding: .6rem;
+      border-radius: 8px;
+      background: var(--hover);
+      border: 1px solid var(--border2);
+      cursor: pointer;
+      transition: border-color .2s;
+    }
+
+    .user-card:hover {
+      border-color: var(--border);
+    }
+
+    .user-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .68rem;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .user-info {
+      overflow: hidden;
+      flex: 1;
+    }
+
+    .user-name {
+      font-size: .77rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-role {
+      font-size: .61rem;
+      color: var(--muted);
+    }
+
+    /* ═══════════════════════════════════════════
+       TOPBAR
+    ═══════════════════════════════════════════ */
+    .main-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    .topbar {
+      height: 60px;
+      background: var(--topbar-bg);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border2);
+      display: flex;
+      align-items: center;
+      padding: 0 1.25rem;
+      gap: .75rem;
+      flex-shrink: 0;
+      transition: background .3s;
+      position: relative;
+      z-index: 200;
+    }
+
+    .topbar-toggle {
+      width: 32px;
+      height: 32px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all .2s;
+      font-size: .82rem;
+      flex-shrink: 0;
+    }
+
+    .topbar-toggle:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .topbar-breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      font-size: .72rem;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+    }
+
+    .topbar-breadcrumb .sep {
+      color: var(--border);
+    }
+
+    .topbar-breadcrumb .current {
+      color: var(--text);
+    }
+
+    .topbar-search {
+      margin-left: auto;
+      position: relative;
+    }
+
+    .topbar-search input {
+      background: var(--hover);
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: .77rem;
+      padding: .37rem .75rem .37rem 2rem;
+      width: 185px;
+      transition: border-color .2s, width .3s;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .topbar-search input:focus {
+      outline: none;
+      border-color: var(--accent);
+      width: 240px;
+    }
+
+    .topbar-search input::placeholder {
+      color: var(--muted);
+      opacity: .5;
+    }
+
+    .topbar-search i {
+      position: absolute;
+      left: .6rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: .67rem;
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+    }
+
+    .topbar-btn {
+      width: 32px;
+      height: 32px;
+      background: transparent;
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all .2s;
+      font-size: .77rem;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .topbar-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .topbar-btn .dot {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #EF4444;
+      border: 1.5px solid var(--bg);
+    }
+
+    .theme-btn {
+      width: 32px;
+      height: 32px;
+      background: transparent;
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all .2s;
+      font-size: .77rem;
+      flex-shrink: 0;
+    }
+
+    .theme-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .topbar-user {
+      display: flex;
+      align-items: center;
+      gap: .42rem;
+      padding: .28rem .6rem;
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: border-color .2s;
+      font-size: .75rem;
+      color: var(--text);
+      background: transparent;
+      flex-shrink: 0;
+    }
+
+    .topbar-user:hover {
+      border-color: var(--border);
+    }
+
+    .topbar-avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .57rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    /* ═══════════════════════════════════════════
+       ③④ DROPDOWNS
+    ═══════════════════════════════════════════ */
+    .dp-wrap {
+      position: relative;
+    }
+
+    .dp {
+      position: absolute;
+      background: var(--dropdown);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, .45);
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(6px) scale(.98);
+      transition: opacity .18s, transform .18s;
+    }
+
+    .dp.open {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0) scale(1);
+    }
+
+    .dp-right {
+      top: calc(100% + 7px);
+      right: 0;
+    }
+
+    .dp-above {
+      bottom: calc(100% + 7px);
+      left: 0;
+      right: 0;
+    }
+
+    .dp-notif {
+      width: 310px;
+    }
+
+    .dp-task {
+      width: 290px;
+    }
+
+    .dp-theme {
+      width: 210px;
+    }
+
+    .dp-user {
+      width: 195px;
+    }
+
+    .dp-head {
+      padding: .7rem 1rem .5rem;
+      border-bottom: 1px solid var(--border2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .dp-head-title {
+      font-size: .77rem;
+      font-weight: 700;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .dp-head-act {
+      font-size: .65rem;
+      color: var(--accent);
+      cursor: pointer;
+    }
+
+    .dp-head-act:hover {
+      opacity: .75;
+    }
+
+    .dp-badge-new {
+      font-size: .58rem;
+      padding: .08rem .4rem;
+      border-radius: 8px;
+      background: rgba(239, 68, 68, .15);
+      color: #EF4444;
+      font-weight: 700;
+    }
+
+    .dp-badge-open {
+      font-size: .58rem;
+      padding: .08rem .4rem;
+      border-radius: 8px;
+      background: var(--sub-tint);
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .dp-scroll {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .dp-foot {
+      padding: .48rem 1rem;
+      border-top: 1px solid var(--border2);
+      font-size: .7rem;
+      color: var(--accent);
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .dp-foot:hover {
+      opacity: .75;
+    }
+
+    /* Notif items */
+    .notif-item {
+      display: flex;
+      gap: .65rem;
+      padding: .65rem 1rem;
+      border-bottom: 1px solid var(--border2);
+      cursor: pointer;
+      transition: background .15s;
+    }
+
+    .notif-item:last-child {
+      border-bottom: none;
+    }
+
+    .notif-item:hover {
+      background: var(--hover);
+    }
+
+    .notif-item.unread {
+      background: var(--sub-tint);
+    }
+
+    .ni-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .7rem;
+      flex-shrink: 0;
+      margin-top: .1rem;
+    }
+
+    .ni-body {
+      flex: 1;
+    }
+
+    .ni-text {
+      font-size: .75rem;
+      line-height: 1.4;
+      color: var(--text);
+    }
+
+    .ni-time {
+      font-size: .61rem;
+      color: var(--muted);
+      margin-top: .12rem;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .ni-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+      margin-top: .5rem;
+    }
+
+    /* Task items */
+    .task-item {
+      display: flex;
+      align-items: center;
+      gap: .65rem;
+      padding: .6rem 1rem;
+      border-bottom: 1px solid var(--border2);
+      cursor: pointer;
+      transition: background .15s;
+    }
+
+    .task-item:last-child {
+      border-bottom: none;
+    }
+
+    .task-item:hover {
+      background: var(--hover);
+    }
+
+    .task-cb {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      border: 1.5px solid var(--border);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .54rem;
+      color: transparent;
+      transition: all .15s;
+    }
+
+    .task-item.done .task-cb {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .task-item.done .task-text {
+      text-decoration: line-through;
+      color: var(--muted);
+    }
+
+    .task-text {
+      font-size: .74rem;
+      flex: 1;
+      line-height: 1.35;
+    }
+
+    .task-pri {
+      font-size: .57rem;
+      padding: .08rem .38rem;
+      border-radius: 3px;
+      font-family: 'Space Mono', monospace;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .tp-h {
+      background: rgba(239, 68, 68, .12);
+      color: #EF4444;
+    }
+
+    .tp-m {
+      background: rgba(251, 191, 36, .12);
+      color: #FBBF24;
+    }
+
+    .tp-l {
+      background: rgba(163, 230, 53, .12);
+      color: #A3E635;
+    }
+
+    /* User dropdown */
+    .dp-user-hd {
+      display: flex;
+      align-items: center;
+      gap: .7rem;
+      padding: .8rem 1rem;
+      border-bottom: 1px solid var(--border2);
+    }
+
+    .dp-av {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .75rem;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .dp-uname {
+      font-size: .8rem;
+      font-weight: 600;
+    }
+
+    .dp-email {
+      font-size: .62rem;
+      color: var(--muted);
+      margin-top: .05rem;
+    }
+
+    .dp-mi {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      padding: .52rem 1rem;
+      font-size: .78rem;
+      color: var(--muted);
+      cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+
+    .dp-mi:hover {
+      background: var(--hover);
+      color: var(--text);
+    }
+
+    .dp-mi i {
+      width: 13px;
+      text-align: center;
+      font-size: .78rem;
+    }
+
+    .dp-mi.danger:hover {
+      color: #EF4444;
+    }
+
+    .dp-div {
+      border: none;
+      border-top: 1px solid var(--border2);
+      margin: .2rem 0;
+    }
+
+    /* ⑤ Theme panel */
+    .t-opt {
+      display: flex;
+      align-items: center;
+      gap: .7rem;
+      padding: .55rem .9rem;
+      cursor: pointer;
+      transition: background .15s;
+      border-radius: 7px;
+      margin: .2rem .4rem;
+    }
+
+    .t-opt:hover {
+      background: var(--hover);
+    }
+
+    .t-opt.active {
+      background: var(--sub-tint);
+    }
+
+    .t-swatch {
+      width: 26px;
+      height: 26px;
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .68rem;
+      flex-shrink: 0;
+    }
+
+    .t-name {
+      font-size: .77rem;
+      flex: 1;
+    }
+
+    .t-check {
+      color: var(--accent);
+      font-size: .72rem;
+      opacity: 0;
+    }
+
+    .t-opt.active .t-check {
+      opacity: 1;
+    }
+
+    .t-desc {
+      font-size: .6rem;
+      color: var(--muted);
+      display: block;
+      margin-top: .05rem;
+    }
+
+    /* ═══════════════════════════════════════════
+       CONTENT
+    ═══════════════════════════════════════════ */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.3rem;
+    }
+
+    .page-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 1.2rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .page-title {
+      font-family: 'Space Mono', monospace;
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -.02em;
+    }
+
+    .page-sub {
+      font-size: .73rem;
+      color: var(--muted);
+      margin-top: .2rem;
+    }
+
+    .page-actions {
+      display: flex;
+      gap: .45rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-cta {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      padding: .4rem .85rem;
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      transition: transform .15s, box-shadow .15s;
+    }
+
+    .btn-cta:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, .25);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: .4rem .85rem;
+      font-size: .72rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      transition: all .2s;
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* KPI */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: .9rem;
+      margin-bottom: 1.1rem;
+    }
+
+    @media(max-width:900px) {
+      .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media(max-width:500px) {
+      .kpi-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.05rem;
+      position: relative;
+      overflow: hidden;
+      transition: border-color .25s, transform .25s;
+      animation: fsUp .5s ease both;
+    }
+
+    .kpi-card:nth-child(1) {
+      animation-delay: .04s
+    }
+
+    .kpi-card:nth-child(2) {
+      animation-delay: .08s
+    }
+
+    .kpi-card:nth-child(3) {
+      animation-delay: .12s
+    }
+
+    .kpi-card:nth-child(4) {
+      animation-delay: .16s
+    }
+
+    @keyframes fsUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    .kpi-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .kpi-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      opacity: 0;
+      transition: opacity .25s;
+    }
+
+    .kpi-card:hover::after {
+      opacity: 1;
+    }
+
+    .kpi-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: .55rem;
+    }
+
+    .kpi-lbl {
+      font-size: .63rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .kpi-ico {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .7rem;
+    }
+
+    .kpi-val {
+      font-family: 'Space Mono', monospace;
+      font-size: 1.65rem;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: .22rem;
+    }
+
+    .kpi-ch {
+      font-size: .65rem;
+      display: inline-flex;
+      align-items: center;
+      gap: .2rem;
+    }
+
+    .ch-up {
+      color: #A3E635
+    }
+
+    .ch-down {
+      color: #EF4444
+    }
+
+    .ch-warn {
+      color: #FBBF24
+    }
+
+    .sparkline {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 22px;
+      margin-top: .6rem;
+    }
+
+    .spark {
+      flex: 1;
+      border-radius: 2px 2px 0 0;
+      background: var(--border);
+      min-width: 4px;
+    }
+
+    .spark.hi {
+      background: var(--sub-tint);
+    }
+
+    .spark.pk {
+      background: var(--accent);
+    }
+
+    /* Charts row */
+    .charts-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: .9rem;
+      margin-bottom: 1.1rem;
+    }
+
+    @media(max-width:800px) {
+      .charts-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      animation: fsUp .5s ease both;
+      transition: background .3s, border-color .3s;
+    }
+
+    .panel-head {
+      padding: .75rem 1rem;
+      border-bottom: 1px solid var(--border2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .panel-title {
+      font-size: .77rem;
+      font-weight: 700;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .panel-sub {
+      font-size: .61rem;
+      color: var(--muted);
+      margin-top: .08rem;
+    }
+
+    .panel-body {
+      padding: .95rem;
+    }
+
+    .bar-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 5px;
+      height: 110px;
+      margin-bottom: .38rem;
+    }
+
+    .bc-group {
+      flex: 1;
+      display: flex;
+      gap: 2px;
+      align-items: flex-end;
+    }
+
+    .bc-bar {
+      flex: 1;
+      border-radius: 3px 3px 0 0;
+      transition: opacity .2s;
+      cursor: pointer;
+      min-width: 5px;
+    }
+
+    .bc-bar:hover {
+      opacity: .7;
+    }
+
+    .bc-bar.b1 {
+      background: var(--accent);
+    }
+
+    .bc-bar.b2 {
+      background: var(--accent2);
+      opacity: .5;
+    }
+
+    .chart-legend {
+      display: flex;
+      gap: 1rem;
+      margin-top: .55rem;
+    }
+
+    .leg-item {
+      display: flex;
+      align-items: center;
+      gap: .3rem;
+      font-size: .63rem;
+      color: var(--muted);
+    }
+
+    .leg-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+    }
+
+    .bar-labels {
+      display: flex;
+      gap: 5px;
+    }
+
+    .bl-grp {
+      flex: 1;
+      text-align: center;
+      font-size: .57rem;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+    }
+
+    .donut-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .donut-svg {
+      position: relative;
+    }
+
+    svg.donut {
+      transform: rotate(-90deg);
+    }
+
+    .donut-ctr {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .donut-num {
+      font-family: 'Space Mono', monospace;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .donut-lbl {
+      font-size: .57rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+    }
+
+    .dl-legend {
+      width: 100%;
+      margin-top: .6rem;
+    }
+
+    .dl-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: .28rem 0;
+      border-bottom: 1px solid var(--border2);
+      font-size: .68rem;
+    }
+
+    .dl-item:last-child {
+      border-bottom: none;
+    }
+
+    .dl-left {
+      display: flex;
+      align-items: center;
+      gap: .42rem;
+      color: var(--muted);
+    }
+
+    .dl-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .dl-val {
+      font-family: 'Space Mono', monospace;
+      color: var(--text);
+    }
+
+    /* Tables row */
+    .tables-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .9rem;
+      margin-bottom: 1.1rem;
+    }
+
+    @media(max-width:800px) {
+      .tables-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .data-table th {
+      font-size: .59rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+      padding: .42rem .7rem;
+      border-bottom: 1px solid var(--border2);
+      text-align: left;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .data-table td {
+      padding: .48rem .7rem;
+      font-size: .75rem;
+      border-bottom: 1px solid var(--border2);
+      color: var(--text);
+    }
+
+    .data-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .data-table tr:hover td {
+      background: var(--hover);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      font-size: .58rem;
+      padding: .1rem .48rem;
+      border-radius: 4px;
+      font-family: 'Space Mono', monospace;
+      font-weight: 700;
+    }
+
+    .bok {
+      background: rgba(163, 230, 53, .12);
+      color: #A3E635;
+    }
+
+    .bwarn {
+      background: rgba(251, 191, 36, .12);
+      color: #FBBF24;
+    }
+
+    .berr {
+      background: rgba(239, 68, 68, .12);
+      color: #EF4444;
+    }
+
+    .binfo {
+      background: rgba(0, 212, 255, .12);
+      color: #00D4FF;
+    }
+
+    .td-mono {
+      font-family: 'Space Mono', monospace;
+      font-size: .69rem;
+    }
+
+    .td-muted {
+      color: var(--muted);
+      font-size: .69rem;
+    }
+
+    .td-act {
+      color: var(--muted);
+      cursor: pointer;
+      font-size: .76rem;
+      transition: color .15s;
+    }
+
+    .td-act:hover {
+      color: var(--accent);
+    }
+
+    .act-item {
+      display: flex;
+      gap: .65rem;
+      padding: .58rem 0;
+      border-bottom: 1px solid var(--border2);
+    }
+
+    .act-item:last-child {
+      border-bottom: none;
+    }
+
+    .act-ico {
+      width: 26px;
+      height: 26px;
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .67rem;
+      flex-shrink: 0;
+    }
+
+    .act-text {
+      font-size: .74rem;
+      line-height: 1.4;
+    }
+
+    .act-text .hl {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .act-time {
+      font-size: .6rem;
+      color: var(--muted);
+      margin-top: .1rem;
+      font-family: 'Space Mono', monospace;
+    }
+
+    /* Bottom row */
+    .bottom-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: .9rem;
+      margin-bottom: 1rem;
+    }
+
+    @media(max-width:900px) {
+      .bottom-row {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media(max-width:600px) {
+      .bottom-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .g-bar {
+      height: 5px;
+      background: var(--border2);
+      border-radius: 3px;
+      overflow: hidden;
+      margin: .55rem 0 .3rem;
+    }
+
+    .g-fill {
+      height: 100%;
+      border-radius: 3px;
+    }
+
+    /* Alert banner */
+    .alert-bar {
+      display: flex;
+      align-items: center;
+      gap: .65rem;
+      background: rgba(251, 191, 36, .06);
+      border: 1px solid rgba(251, 191, 36, .2);
+      border-radius: 8px;
+      padding: .6rem .85rem;
+      margin-bottom: 1.1rem;
+      font-size: .74rem;
+      animation: fsUp .5s ease both;
+    }
+
+    .alert-bar i {
+      color: #FBBF24;
+      flex-shrink: 0;
+    }
+
+    .alert-bar span {
+      color: var(--muted);
+    }
+
+    .alert-bar strong {
+      color: var(--text);
+    }
+
+    .close-x {
+      margin-left: auto;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: .76rem;
+      transition: color .2s;
+    }
+
+    .close-x:hover {
+      color: var(--text);
+    }
+
+    /* ── PAGINATION ── */
+    .pagination-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: .6rem .85rem;
+      border-top: 1px solid var(--border2);
+      flex-wrap: wrap;
+      gap: .5rem;
+    }
+
+    .pagination-info {
+      font-size: .65rem;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+    }
+
+    .pagination-info span {
+      color: var(--text);
+    }
+
+    .pagination-btns {
+      display: flex;
+      align-items: center;
+      gap: .25rem;
+    }
+
+    .pg-btn {
+      min-width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 5px;
+      border: 1px solid var(--border2);
+      background: transparent;
+      color: var(--muted);
+      font-size: .7rem;
+      cursor: pointer;
+      font-family: 'Space Mono', monospace;
+      font-weight: 700;
+      transition: all .18s;
+      padding: 0 .35rem;
+      text-decoration: none;
+    }
+
+    .pg-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .pg-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      pointer-events: none;
+    }
+
+    .pg-btn.disabled {
+      opacity: .3;
+      pointer-events: none;
+      cursor: not-allowed;
+    }
+
+    .pg-ellipsis {
+      min-width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .7rem;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+    }
+
+    .pg-size {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      font-size: .65rem;
+      color: var(--muted);
+    }
+
+    .pg-size select {
+      background: var(--hover);
+      border: 1px solid var(--border2);
+      border-radius: 5px;
+      color: var(--text);
+      font-size: .65rem;
+      padding: .18rem .4rem;
+      font-family: 'Space Mono', monospace;
+      cursor: pointer;
+    }
+
+    .pg-size select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+  </style>
+</head>
+
+<body>
+  
+  <div class="layout">
+    <!-- ═══════════════════ SIDEBAR ═══════════════════ -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-mark">SQS</div>
+        <div class="logo-text">SQS Admin<small>Smart Quality Solution</small></div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label">Main</div>
+        <a class="nav-item active" onclick="navGo(this,'Dashboard')">
+          <i class="fa-solid fa-chart-pie ni"></i><span class="nav-label">Dashboard</span>
+        </a>
+        <a class="nav-item" onclick="navGo(this,'Analytics')">
+          <i class="fa-solid fa-chart-line ni"></i><span class="nav-label">Analytics</span>
+        </a>
+        <a class="nav-item" onclick="navGo(this,'Notifications')">
+          <i class="fa-solid fa-bell ni"></i><span class="nav-label">Notifications</span>
+          <span class="nav-badge red">5</span>
+        </a>
+
+        <div class="sidebar-label">LIMS</div>
+
+        <!-- Samples + sub -->
+        <a class="nav-item has-sub" onclick="navSub(this,'s-samples','Samples')">
+          <i class="fa-solid fa-flask-vial ni"></i>
+          <span class="nav-label">Samples</span>
+          <i class="fa-solid fa-chevron-right nav-chevron"></i>
+        </a>
+        <div class="sub-menu" id="s-samples">
+          <a class="sub-item" onclick="subGo(this,'Samples – Manage')">Manage</a>
+          <a class="sub-item" onclick="subGo(this,'Samples – Warehouse')">Warehouse</a>
+          <a class="sub-item" onclick="subGo(this,'Samples – Label Print')">Label Print</a>
+        </div>
+
+        <!-- Test Requests + sub -->
+        <a class="nav-item has-sub" onclick="navSub(this,'s-tests','Test Requests')">
+          <i class="fa-solid fa-clipboard-list ni"></i>
+          <span class="nav-label">Test Requests</span>
+          <i class="fa-solid fa-chevron-right nav-chevron"></i>
+        </a>
+        <div class="sub-menu" id="s-tests">
+          <a class="sub-item" onclick="subGo(this,'Test Requests – Pending')">Pending</a>
+          <a class="sub-item" onclick="subGo(this,'Test Requests – Assigned')">Assigned</a>
+          <a class="sub-item" onclick="subGo(this,'Test Requests – Completed')">Completed</a>
+        </div>
+
+        <a class="nav-item" onclick="navGo(this,'Results')">
+          <i class="fa-solid fa-vial-circle-check ni"></i><span class="nav-label">Results</span>
+        </a>
+        <a class="nav-item" onclick="navGo(this,'Reports')">
+          <i class="fa-solid fa-file-pdf ni"></i><span class="nav-label">Reports</span>
+        </a>
+
+        <div class="sidebar-label">ISO Builder</div>
+        <a class="nav-item" onclick="navGo(this,'Instruments')">
+          <i class="fa-solid fa-microscope ni"></i><span class="nav-label">Instruments</span>
+          <span class="nav-badge amber">2</span>
+        </a>
+
+        <!-- Training + sub -->
+        <a class="nav-item has-sub" onclick="navSub(this,'s-training','Training')">
+          <i class="fa-solid fa-user-graduate ni"></i>
+          <span class="nav-label">Training</span>
+          <i class="fa-solid fa-chevron-right nav-chevron"></i>
+        </a>
+        <div class="sub-menu" id="s-training">
+          <a class="sub-item" onclick="subGo(this,'Training – Plans')">Training Plans</a>
+          <a class="sub-item" onclick="subGo(this,'Training – Records')">Records</a>
+          <a class="sub-item" onclick="subGo(this,'Training – Competency')">Competency</a>
+        </div>
+
+        <a class="nav-item" onclick="navGo(this,'Audits')">
+          <i class="fa-solid fa-shield-halved ni"></i><span class="nav-label">Audits</span>
+        </a>
+
+        <div class="sidebar-label">Chemical</div>
+
+        <!-- Inventory + sub -->
+        <a class="nav-item has-sub" onclick="navSub(this,'s-chem','Inventory')">
+          <i class="fa-solid fa-vials ni"></i>
+          <span class="nav-label">Inventory</span>
+          <i class="fa-solid fa-chevron-right nav-chevron"></i>
+        </a>
+        <div class="sub-menu" id="s-chem">
+          <a class="sub-item" onclick="subGo(this,'Inventory – Stock')">Stock Management</a>
+          <a class="sub-item" onclick="subGo(this,'Inventory – Usage Log')">Usage Log</a>
+          <a class="sub-item" onclick="subGo(this,'Inventory – Disposal')">Disposal</a>
+        </div>
+
+        <a class="nav-item" onclick="navGo(this,'SDS Library')">
+          <i class="fa-solid fa-book ni"></i><span class="nav-label">SDS Library</span>
+        </a>
+
+        <div class="sidebar-label">System</div>
+        <a class="nav-item" onclick="navGo(this,'Users')">
+          <i class="fa-solid fa-users ni"></i><span class="nav-label">Users</span>
+        </a>
+        <a class="nav-item" onclick="navGo(this,'Settings')">
+          <i class="fa-solid fa-gear ni"></i><span class="nav-label">Settings</span>
+        </a>
+      </div>
+
+      <!-- ③ Sidebar user footer dropdown -->
+      <div class="sidebar-footer">
+        <div class="dp dp-above" id="dp-sb-user">
+          <div class="dp-user-hd">
+            <div class="dp-av">NT</div>
+            <div>
+              <div class="dp-uname">Nguyen Thanh</div>
+              <div class="dp-email">n.thanh@sqs-lab.com</div>
+            </div>
+          </div>
+          <div class="dp-mi"><i class="fa-solid fa-user"></i> My Profile</div>
+          <div class="dp-mi"><i class="fa-solid fa-gear"></i> Account Settings</div>
+          <div class="dp-mi"><i class="fa-solid fa-key"></i> Change Password</div>
+          <hr class="dp-div" />
+          <div class="dp-mi danger"><i class="fa-solid fa-right-from-bracket"></i> Log Out</div>
+        </div>
+        <div class="user-card" onclick="openDp('dp-sb-user',this)">
+          <div class="user-avatar">NT</div>
+          <div class="user-info">
+            <div class="user-name">Nguyen Thanh</div>
+            <div class="user-role">Lab Administrator</div>
+          </div>
+          <i class="fa-solid fa-ellipsis-vertical" style="color:var(--muted);font-size:.68rem;margin-left:auto"></i>
+        </div>
+      </div>
+    </aside>
+
+    <div class="sidebar-overlay" id="sbOverlay" onclick="closeSb()"></div>
+
+    <!-- ═══════════════════ MAIN ═══════════════════ -->
+    <div class="main-wrap">
+
+      <!-- TOPBAR -->
+      <div class="topbar">
+        <button class="topbar-toggle" onclick="toggleSb()"><i class="fa-solid fa-bars"></i></button>
+        <div class="topbar-breadcrumb">
+          <span>SQS</span><span class="sep">/</span>
+          <span class="current" id="breadcrumb">Dashboard</span>
+        </div>
+        <div class="topbar-search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" placeholder="Search samples, chemicals..." />
+        </div>
+        <div class="topbar-actions">
+
+          <!-- ④ Notifications -->
+          <div class="dp-wrap">
+            <button class="topbar-btn" onclick="openDp('dp-notif',this)">
+              <i class="fa-solid fa-bell"></i><span class="dot"></span>
+            </button>
+            <div class="dp dp-right dp-notif" id="dp-notif">
+              <div class="dp-head">
+                <span class="dp-head-title">Notifications</span>
+                <div style="display:flex;align-items:center;gap:.5rem">
+                  <span class="dp-badge-new">5 new</span>
+                  <span class="dp-head-act" onclick="markAllRead()">Mark all read</span>
+                </div>
+              </div>
+              <div class="dp-scroll">
+                <div class="notif-item unread">
+                  <div class="ni-icon" style="background:rgba(239,68,68,.12);color:#EF4444"><i
+                      class="fa-solid fa-clock-rotate-left"></i></div>
+                  <div class="ni-body">
+                    <div class="ni-text"><strong>pH Meter ID-034</strong> calibration overdue by 5 days</div>
+                    <div class="ni-time">Just now · ISO Builder</div>
+                  </div>
+                  <div class="ni-dot"></div>
+                </div>
+                <div class="notif-item unread">
+                  <div class="ni-icon" style="background:rgba(239,68,68,.12);color:#EF4444"><i
+                      class="fa-solid fa-vials"></i></div>
+                  <div class="ni-body">
+                    <div class="ni-text"><strong>NaOH Pellets</strong> has expired — action required</div>
+                    <div class="ni-time">18 min ago · Chemical</div>
+                  </div>
+                  <div class="ni-dot"></div>
+                </div>
+                <div class="notif-item unread">
+                  <div class="ni-icon" style="background:rgba(251,191,36,.12);color:#FBBF24"><i
+                      class="fa-solid fa-triangle-exclamation"></i></div>
+                  <div class="ni-body">
+                    <div class="ni-text"><strong>SMP-0045</strong> result requires supervisor review</div>
+                    <div class="ni-time">1h ago · LIMS</div>
+                  </div>
+                  <div class="ni-dot"></div>
+                </div>
+                <div class="notif-item unread">
+                  <div class="ni-icon" style="background:var(--sub-tint);color:var(--accent)"><i
+                      class="fa-solid fa-file-circle-check"></i></div>
+                  <div class="ni-body">
+                    <div class="ni-text">CoA for <strong>SMP-0041</strong> generated and sent to Vinachem</div>
+                    <div class="ni-time">2h ago · LIMS</div>
+                  </div>
+                  <div class="ni-dot"></div>
+                </div>
+                <div class="notif-item unread">
+                  <div class="ni-icon" style="background:rgba(163,230,53,.12);color:#A3E635"><i
+                      class="fa-solid fa-user-check"></i></div>
+                  <div class="ni-body">
+                    <div class="ni-text"><strong>T. Minh</strong> completed HPLC competency assessment</div>
+                    <div class="ni-time">3h ago · Training</div>
+                  </div>
+                  <div class="ni-dot"></div>
+                </div>
+                <div class="notif-item">
+                  <div class="ni-icon" style="background:rgba(0,180,160,.12);color:#00B4A0"><i
+                      class="fa-solid fa-flask-vial"></i></div>
+                  <div class="ni-body">
+                    <div class="ni-text">Sample batch <strong>SMP-0044 to 0046</strong> registered</div>
+                    <div class="ni-time">5h ago · V. Anh</div>
+                  </div>
+                </div>
+              </div>
+              <div class="dp-foot">View all notifications</div>
+            </div>
+          </div>
+
+          <!-- ④ Tasks -->
+          <div class="dp-wrap">
+            <button class="topbar-btn" onclick="openDp('dp-tasks',this)">
+              <i class="fa-solid fa-list-check"></i>
+            </button>
+            <div class="dp dp-right dp-task" id="dp-tasks">
+              <div class="dp-head">
+                <span class="dp-head-title">My Tasks</span>
+                <span class="dp-badge-open" id="task-count">4 open</span>
+              </div>
+              <div class="dp-scroll">
+                <div class="task-item" onclick="toggleTask(this)">
+                  <div class="task-cb"><i class="fa-solid fa-check"></i></div>
+                  <div class="task-text">Review SMP-0045 result and approve</div>
+                  <span class="task-pri tp-h">HIGH</span>
+                </div>
+                <div class="task-item" onclick="toggleTask(this)">
+                  <div class="task-cb"><i class="fa-solid fa-check"></i></div>
+                  <div class="task-text">Schedule calibration for pH Meter ID-034</div>
+                  <span class="task-pri tp-h">HIGH</span>
+                </div>
+                <div class="task-item" onclick="toggleTask(this)">
+                  <div class="task-cb"><i class="fa-solid fa-check"></i></div>
+                  <div class="task-text">Dispose expired NaOH Pellets batch</div>
+                  <span class="task-pri tp-m">MED</span>
+                </div>
+                <div class="task-item" onclick="toggleTask(this)">
+                  <div class="task-cb"><i class="fa-solid fa-check"></i></div>
+                  <div class="task-text">Update SDS for H₂SO₄ 98% new revision</div>
+                  <span class="task-pri tp-m">MED</span>
+                </div>
+                <div class="task-item done" onclick="toggleTask(this)">
+                  <div class="task-cb"><i class="fa-solid fa-check"></i></div>
+                  <div class="task-text">Send Q4 compliance report to management</div>
+                  <span class="task-pri tp-l">LOW</span>
+                </div>
+                <div class="task-item done" onclick="toggleTask(this)">
+                  <div class="task-cb"><i class="fa-solid fa-check"></i></div>
+                  <div class="task-text">Add T. Minh to HPLC training plan</div>
+                  <span class="task-pri tp-l">LOW</span>
+                </div>
+              </div>
+              <div class="dp-foot">+ Add task &nbsp;·&nbsp; View all</div>
+            </div>
+          </div>
+
+          <!-- ⑤ Theme -->
+          <div class="dp-wrap">
+            <button class="theme-btn" onclick="openDp('dp-theme',this)">
+              <i class="fa-solid fa-palette"></i>
+            </button>
+            <div class="dp dp-right dp-theme" id="dp-theme">
+              <div class="dp-head"><span class="dp-head-title">Appearance</span></div>
+              <div style="padding:.35rem 0">
+                <div class="t-opt active" id="to-dark" onclick="setTheme('dark')">
+                  <div class="t-swatch" style="background:linear-gradient(135deg,#0A0F1E,#00D4FF)">🌙</div>
+                  <div><span class="t-name">Dark Ocean</span><span class="t-desc">Default dark theme</span></div>
+                  <i class="fa-solid fa-check t-check"></i>
+                </div>
+                <div class="t-opt" id="to-light" onclick="setTheme('light')">
+                  <div class="t-swatch" style="background:linear-gradient(135deg,#EEF3FA,#0099CC)">☀️</div>
+                  <div><span class="t-name">Light</span><span class="t-desc">Clean & bright</span></div>
+                  <i class="fa-solid fa-check t-check"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ③ Topbar user dropdown -->
+          <div class="dp-wrap">
+            <div class="topbar-user" onclick="openDp('dp-tb-user',this)">
+              <div class="topbar-avatar">NT</div>
+              <span style="color:var(--muted)">NT</span>
+              <i class="fa-solid fa-chevron-down" style="font-size:.5rem;color:var(--muted)"></i>
+            </div>
+            <div class="dp dp-right dp-user" id="dp-tb-user">
+              <div class="dp-user-hd">
+                <div class="dp-av">NT</div>
+                <div>
+                  <div class="dp-uname">Nguyen Thanh</div>
+                  <div class="dp-email">n.thanh@sqs-lab.com</div>
+                </div>
+              </div>
+              <div class="dp-mi"><i class="fa-solid fa-user"></i> My Profile</div>
+              <div class="dp-mi"><i class="fa-solid fa-gear"></i> Account Settings</div>
+              <div class="dp-mi"><i class="fa-solid fa-key"></i> Change Password</div>
+              <div class="dp-mi"><i class="fa-solid fa-bell"></i> Notifications</div>
+              <hr class="dp-div" />
+              <div class="dp-mi danger"><i class="fa-solid fa-right-from-bracket"></i> Log Out</div>
+            </div>
+          </div>
+
+        </div>
+      </div><!-- /topbar -->
+
+      <!-- CONTENT -->
+      <div class="content">
+
+        <div class="alert-bar" id="alertBar">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span><strong>2 instruments</strong> have overdue calibration — <strong>pH Meter ID-034</strong> &amp;
+            <strong>UV-Vis Spectrophotometer</strong></span>
+          <button class="close-x" onclick="this.closest('.alert-bar').style.display='none'"><i
+              class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div class="page-header">
+          <div>
+            <div class="page-title">Overview Dashboard</div>
+            <div class="page-sub">Wednesday, 15 January 2025 &nbsp;·&nbsp; All systems operational</div>
+          </div>
+          <div class="page-actions">
+            <button class="btn-ghost"><i class="fa-solid fa-download"></i> Export</button>
+            <button class="btn-ghost"><i class="fa-solid fa-rotate"></i> Refresh</button>
+            <button class="btn-cta"><i class="fa-solid fa-plus"></i> New Sample</button>
+          </div>
+        </div>
+
+        <!-- KPI -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-top">
+              <div class="kpi-lbl">Active Samples</div>
+              <div class="kpi-ico" style="background:var(--sub-tint);color:var(--accent)"><i
+                  class="fa-solid fa-flask-vial"></i></div>
+            </div>
+            <div class="kpi-val">147</div>
+            <div class="kpi-ch ch-up"><i class="fa-solid fa-arrow-trend-up"></i> +12% vs last week</div>
+            <div class="sparkline">
+              <div class="spark" style="height:40%"></div>
+              <div class="spark hi" style="height:55%"></div>
+              <div class="spark" style="height:45%"></div>
+              <div class="spark hi" style="height:70%"></div>
+              <div class="spark" style="height:60%"></div>
+              <div class="spark hi" style="height:80%"></div>
+              <div class="spark pk" style="height:100%"></div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-top">
+              <div class="kpi-lbl">Reports Issued</div>
+              <div class="kpi-ico" style="background:var(--sub-tint);color:var(--accent)"><i
+                  class="fa-solid fa-file-circle-check"></i></div>
+            </div>
+            <div class="kpi-val">89</div>
+            <div class="kpi-ch ch-up"><i class="fa-solid fa-arrow-trend-up"></i> +7% this month</div>
+            <div class="sparkline">
+              <div class="spark hi" style="height:50%"></div>
+              <div class="spark" style="height:40%"></div>
+              <div class="spark hi" style="height:65%"></div>
+              <div class="spark hi" style="height:75%"></div>
+              <div class="spark" style="height:55%"></div>
+              <div class="spark hi" style="height:85%"></div>
+              <div class="spark pk" style="height:95%"></div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-top">
+              <div class="kpi-lbl">Calibration Due</div>
+              <div class="kpi-ico" style="background:rgba(251,191,36,.1);color:#FBBF24"><i
+                  class="fa-solid fa-clock-rotate-left"></i></div>
+            </div>
+            <div class="kpi-val">4</div>
+            <div class="kpi-ch ch-warn"><i class="fa-solid fa-triangle-exclamation"></i> 2 overdue</div>
+            <div class="sparkline">
+              <div class="spark" style="height:30%"></div>
+              <div class="spark hi" style="height:30%"></div>
+              <div class="spark" style="height:50%"></div>
+              <div class="spark hi" style="height:40%"></div>
+              <div class="spark hi" style="height:70%"></div>
+              <div class="spark" style="height:60%"></div>
+              <div class="spark pk" style="height:80%"></div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-top">
+              <div class="kpi-lbl">Expiring Chemicals</div>
+              <div class="kpi-ico" style="background:rgba(239,68,68,.1);color:#EF4444"><i class="fa-solid fa-vials"></i>
+              </div>
+            </div>
+            <div class="kpi-val">3</div>
+            <div class="kpi-ch ch-down"><i class="fa-solid fa-circle-exclamation"></i> Requires action</div>
+            <div class="sparkline">
+              <div class="spark" style="height:20%"></div>
+              <div class="spark" style="height:20%"></div>
+              <div class="spark hi" style="height:35%"></div>
+              <div class="spark" style="height:20%"></div>
+              <div class="spark hi" style="height:50%"></div>
+              <div class="spark hi" style="height:40%"></div>
+              <div class="spark pk" style="height:60%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-row">
+          <div class="card-panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">Sample Throughput</div>
+                <div class="panel-sub">Monthly — Received vs Completed</div>
+              </div>
+              <button class="btn-ghost" style="font-size:.63rem;padding:.26rem .6rem">7 months</button>
+            </div>
+            <div class="panel-body">
+              <div class="bar-chart" id="barChart"></div>
+              <div class="bar-labels" id="barLabels"></div>
+              <div class="chart-legend">
+                <div class="leg-item">
+                  <div class="leg-dot" style="background:var(--accent)"></div>Received
+                </div>
+                <div class="leg-item">
+                  <div class="leg-dot" style="background:var(--accent2);opacity:.7"></div>Completed
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card-panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">Sample Status</div>
+                <div class="panel-sub">Current period</div>
+              </div>
+            </div>
+            <div class="panel-body">
+              <div class="donut-wrap">
+                <div class="donut-svg" style="position:relative;width:120px;height:120px">
+                  <svg class="donut" width="120" height="120" viewBox="0 0 120 120">
+                    <circle cx="60" cy="60" r="48" fill="none" stroke="var(--border)" stroke-width="13" />
+                    <circle cx="60" cy="60" r="48" fill="none" stroke="#00D4FF" stroke-width="13"
+                      stroke-dasharray="120 182" stroke-dashoffset="0" stroke-linecap="round" />
+                    <circle cx="60" cy="60" r="48" fill="none" stroke="#00B4A0" stroke-width="13"
+                      stroke-dasharray="60 242" stroke-dashoffset="-120" stroke-linecap="round" />
+                    <circle cx="60" cy="60" r="48" fill="none" stroke="#FBBF24" stroke-width="13"
+                      stroke-dasharray="30 272" stroke-dashoffset="-180" stroke-linecap="round" />
+                    <circle cx="60" cy="60" r="48" fill="none" stroke="#EF4444" stroke-width="13"
+                      stroke-dasharray="20 282" stroke-dashoffset="-210" stroke-linecap="round" />
+                  </svg>
+                  <div class="donut-ctr">
+                    <div class="donut-num">147</div>
+                    <div class="donut-lbl">Total</div>
+                  </div>
+                </div>
+                <div class="dl-legend">
+                  <div class="dl-item">
+                    <div class="dl-left">
+                      <div class="dl-dot" style="background:#00D4FF"></div>Completed
+                    </div>
+                    <div class="dl-val">89</div>
+                  </div>
+                  <div class="dl-item">
+                    <div class="dl-left">
+                      <div class="dl-dot" style="background:#00B4A0"></div>In Progress
+                    </div>
+                    <div class="dl-val">35</div>
+                  </div>
+                  <div class="dl-item">
+                    <div class="dl-left">
+                      <div class="dl-dot" style="background:#FBBF24"></div>Pending
+                    </div>
+                    <div class="dl-val">15</div>
+                  </div>
+                  <div class="dl-item">
+                    <div class="dl-left">
+                      <div class="dl-dot" style="background:#EF4444"></div>Review
+                    </div>
+                    <div class="dl-val">8</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tables -->
+        <div class="tables-row">
+          <div class="card-panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">Recent Samples</div>
+                <div class="panel-sub">Latest 6 entries</div>
+              </div>
+              <button class="btn-ghost" style="font-size:.63rem;padding:.26rem .6rem">View All</button>
+            </div>
+            <div class="panel-body" style="padding:0">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Sample ID</th>
+                    <th>Client</th>
+                    <th>Status</th>
+                    <th>Analyst</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="td-mono">SMP-0041</td>
+                    <td>Vinachem Ltd</td>
+                    <td><span class="badge bok">DONE</span></td>
+                    <td class="td-muted">H. Linh</td>
+                    <td class="td-act"><i class="fa-solid fa-arrow-right"></i></td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">SMP-0042</td>
+                    <td>PetroVietnam</td>
+                    <td><span class="badge binfo">IN PROGRESS</span></td>
+                    <td class="td-muted">T. Minh</td>
+                    <td class="td-act"><i class="fa-solid fa-arrow-right"></i></td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">SMP-0043</td>
+                    <td>Masan Group</td>
+                    <td><span class="badge bwarn">PENDING</span></td>
+                    <td class="td-muted">—</td>
+                    <td class="td-act"><i class="fa-solid fa-arrow-right"></i></td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">SMP-0044</td>
+                    <td>FPT Industrial</td>
+                    <td><span class="badge bok">DONE</span></td>
+                    <td class="td-muted">V. Anh</td>
+                    <td class="td-act"><i class="fa-solid fa-arrow-right"></i></td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">SMP-0045</td>
+                    <td>Binh Son Ref.</td>
+                    <td><span class="badge berr">REVIEW</span></td>
+                    <td class="td-muted">H. Linh</td>
+                    <td class="td-act"><i class="fa-solid fa-arrow-right"></i></td>
+                  </tr>
+                  <tr>
+                    <td class="td-mono">SMP-0046</td>
+                    <td>Saigon Pharma</td>
+                    <td><span class="badge binfo">IN PROGRESS</span></td>
+                    <td class="td-muted">T. Minh</td>
+                    <td class="td-act"><i class="fa-solid fa-arrow-right"></i></td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="pagination-wrap">
+                <div class="pagination-info">
+                  Showing <span>1–6</span> of <span>38</span> samples
+                </div>
+
+                <div class="pagination-btns">
+                  <!-- Prev — thêm class "disabled" khi ở trang đầu -->
+                  <a class="pg-btn disabled" href="#">
+                    <i class="fa-solid fa-chevron-left" style="font-size:.58rem"></i>
+                  </a>
+
+                  <a class="pg-btn active" href="#">1</a>
+                  <a class="pg-btn" href="#">2</a>
+                  <a class="pg-btn" href="#">3</a>
+
+                  <span class="pg-ellipsis">…</span>
+
+                  <a class="pg-btn" href="#">7</a>
+
+                  <!-- Next — thêm class "disabled" khi ở trang cuối -->
+                  <a class="pg-btn" href="#">
+                    <i class="fa-solid fa-chevron-right" style="font-size:.58rem"></i>
+                  </a>
+                </div>
+
+                <div class="pg-size">
+                  Rows:
+                  <select>
+                    <option value="6" selected>6</option>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card-panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">Activity Feed</div>
+                <div class="panel-sub">Recent events</div>
+              </div>
+            </div>
+            <div class="panel-body">
+              <div class="act-item">
+                <div class="act-ico" style="background:rgba(0,212,255,.1);color:#00D4FF"><i
+                    class="fa-solid fa-file-circle-check"></i></div>
+                <div>
+                  <div class="act-text">CoA for <span class="hl">SMP-0041</span> sent to Vinachem</div>
+                  <div class="act-time">2 min · H. Linh</div>
+                </div>
+              </div>
+              <div class="act-item">
+                <div class="act-ico" style="background:rgba(251,191,36,.1);color:#FBBF24"><i
+                    class="fa-solid fa-clock"></i></div>
+                <div>
+                  <div class="act-text">Overdue — <span class="hl">pH Meter ID-034</span></div>
+                  <div class="act-time">18 min · System</div>
+                </div>
+              </div>
+              <div class="act-item">
+                <div class="act-ico" style="background:rgba(163,230,53,.1);color:#A3E635"><i
+                    class="fa-solid fa-user-check"></i></div>
+                <div>
+                  <div class="act-text"><span class="hl">T. Minh</span> completed HPLC competency</div>
+                  <div class="act-time">1h · Training</div>
+                </div>
+              </div>
+              <div class="act-item">
+                <div class="act-ico" style="background:rgba(239,68,68,.1);color:#EF4444"><i
+                    class="fa-solid fa-vials"></i></div>
+                <div>
+                  <div class="act-text"><span class="hl">NaOH Pellets</span> marked expired</div>
+                  <div class="act-time">3h · Chemical</div>
+                </div>
+              </div>
+              <div class="act-item">
+                <div class="act-ico" style="background:rgba(0,180,160,.1);color:#00B4A0"><i
+                    class="fa-solid fa-flask-vial"></i></div>
+                <div>
+                  <div class="act-text">Batch <span class="hl">SMP-0044–0046</span> registered</div>
+                  <div class="act-time">5h · V. Anh</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom -->
+        <div class="bottom-row">
+          <div class="card-panel">
+            <div class="panel-head">
+              <div class="panel-title">Compliance Score</div>
+            </div>
+            <div class="panel-body">
+              <div style="display:flex;flex-direction:column;gap:.6rem">
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-size:.69rem;margin-bottom:.22rem"><span
+                      style="color:var(--muted)">Document Control</span><span class="td-mono"
+                      style="color:#A3E635">96%</span></div>
+                  <div class="g-bar">
+                    <div class="g-fill" style="width:96%;background:#A3E635"></div>
+                  </div>
+                </div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-size:.69rem;margin-bottom:.22rem"><span
+                      style="color:var(--muted)">Calibration</span><span class="td-mono"
+                      style="color:#FBBF24">72%</span></div>
+                  <div class="g-bar">
+                    <div class="g-fill" style="width:72%;background:#FBBF24"></div>
+                  </div>
+                </div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-size:.69rem;margin-bottom:.22rem"><span
+                      style="color:var(--muted)">Training Records</span><span class="td-mono"
+                      style="color:var(--accent)">88%</span></div>
+                  <div class="g-bar">
+                    <div class="g-fill" style="width:88%;background:var(--accent)"></div>
+                  </div>
+                </div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-size:.69rem;margin-bottom:.22rem"><span
+                      style="color:var(--muted)">Internal Audits</span><span class="td-mono"
+                      style="color:#A3E635">100%</span></div>
+                  <div class="g-bar">
+                    <div class="g-fill" style="width:100%;background:#A3E635"></div>
+                  </div>
+                </div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-size:.69rem;margin-bottom:.22rem"><span
+                      style="color:var(--muted)">CAPA Closure</span><span class="td-mono"
+                      style="color:var(--accent2)">83%</span></div>
+                  <div class="g-bar">
+                    <div class="g-fill" style="width:83%;background:var(--accent2)"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card-panel">
+            <div class="panel-head">
+              <div class="panel-title">Instrument Status</div>
+            </div>
+            <div class="panel-body" style="padding:0">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Instrument</th>
+                    <th>Next Cal.</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Analytical Balance</td>
+                    <td class="td-muted td-mono">2025-03-01</td>
+                    <td><span class="badge bok">OK</span></td>
+                  </tr>
+                  <tr>
+                    <td>pH Meter</td>
+                    <td class="td-muted td-mono" style="color:#EF4444">2025-01-10</td>
+                    <td><span class="badge berr">OVERDUE</span></td>
+                  </tr>
+                  <tr>
+                    <td>HPLC System</td>
+                    <td class="td-muted td-mono">2025-04-15</td>
+                    <td><span class="badge bok">OK</span></td>
+                  </tr>
+                  <tr>
+                    <td>UV-Vis Spectro.</td>
+                    <td class="td-muted td-mono" style="color:#EF4444">2025-01-05</td>
+                    <td><span class="badge berr">OVERDUE</span></td>
+                  </tr>
+                  <tr>
+                    <td>Centrifuge</td>
+                    <td class="td-muted td-mono">2025-02-20</td>
+                    <td><span class="badge bwarn">DUE SOON</span></td>
+                  </tr>
+                  <tr>
+                    <td>Autoclave</td>
+                    <td class="td-muted td-mono">2025-05-01</td>
+                    <td><span class="badge bok">OK</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card-panel">
+            <div class="panel-head">
+              <div class="panel-title">Chemical Alerts</div>
+            </div>
+            <div class="panel-body" style="padding:0">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Chemical</th>
+                    <th>Stock</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>NaOH Pellets</td>
+                    <td class="td-muted td-mono">—</td>
+                    <td><span class="badge berr">EXPIRED</span></td>
+                  </tr>
+                  <tr>
+                    <td>HCl 37%</td>
+                    <td class="td-muted td-mono">0.5 L</td>
+                    <td><span class="badge bwarn">LOW</span></td>
+                  </tr>
+                  <tr>
+                    <td>Acetonitrile</td>
+                    <td class="td-muted td-mono">4.5 L</td>
+                    <td><span class="badge bok">OK</span></td>
+                  </tr>
+                  <tr>
+                    <td>H₂SO₄ 98%</td>
+                    <td class="td-muted td-mono">—</td>
+                    <td><span class="badge berr">EXPIRED</span></td>
+                  </tr>
+                  <tr>
+                    <td>Methanol GR</td>
+                    <td class="td-muted td-mono">12 L</td>
+                    <td><span class="badge bok">OK</span></td>
+                  </tr>
+                  <tr>
+                    <td>Chloroform</td>
+                    <td class="td-muted td-mono">0.8 L</td>
+                    <td><span class="badge bwarn">LOW</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /content -->
+    </div><!-- /main-wrap -->
+  </div><!-- /layout -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+  <script>
+    /* ══════════════════════════════════════════
+       ① SIDEBAR — complete hide / show
+    ══════════════════════════════════════════ */
+    const sbEl = document.getElementById('sidebar');
+    const ovEl = document.getElementById('sbOverlay');
+
+    function toggleSb() {
+      if (window.innerWidth <= 768) {
+        sbEl.classList.toggle('mobile-open');
+        ovEl.classList.toggle('active');
+      } else {
+        sbEl.classList.toggle('hidden');
+      }
+    }
+    function closeSb() {
+      sbEl.classList.remove('mobile-open');
+      ovEl.classList.remove('active');
+    }
+
+    /* ══════════════════════════════════════════
+       ② SUB MENUS
+    ══════════════════════════════════════════ */
+    function navSub(el, subId, pageName) {
+      const sub = document.getElementById(subId);
+      const open = sub.classList.contains('open');
+
+      // close all other subs
+      document.querySelectorAll('.sub-menu.open').forEach(s => {
+        if (s.id !== subId) {
+          s.classList.remove('open');
+          s.previousElementSibling.classList.remove('open');
+        }
+      });
+
+      el.classList.toggle('open', !open);
+      sub.classList.toggle('open', !open);
+
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+      el.classList.add('active');
+      setBc(pageName);
+    }
+    function navGo(el, name) {
+      // close all subs
+      document.querySelectorAll('.sub-menu.open').forEach(s => {
+        s.classList.remove('open');
+        if (s.previousElementSibling) s.previousElementSibling.classList.remove('open');
+      });
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+      document.querySelectorAll('.sub-item').forEach(i => i.classList.remove('active'));
+      el.classList.add('active');
+      setBc(name);
+      if (window.innerWidth <= 768) closeSb();
+    }
+    function subGo(el, name) {
+      document.querySelectorAll('.sub-item').forEach(i => i.classList.remove('active'));
+      el.classList.add('active');
+      setBc(name);
+      if (window.innerWidth <= 768) closeSb();
+    }
+    function setBc(name) {
+      document.getElementById('breadcrumb').textContent = name;
+    }
+
+    /* ══════════════════════════════════════════
+       ③④ DROPDOWNS
+    ══════════════════════════════════════════ */
+    const DPS = ['dp-notif', 'dp-tasks', 'dp-theme', 'dp-tb-user', 'dp-sb-user'];
+    
+
+    function openDp(id, trigger) {
+      const target = document.getElementById(id);
+      const isOpen = target.classList.contains('open');
+      DPS.forEach(d => { const el = document.getElementById(d); if (el) el.classList.remove('open'); });
+      if (!isOpen) target.classList.add('open');
+    }
+
+    document.addEventListener('click', e => {
+      const inDp = e.target.closest('.dp');
+      const inTrg = e.target.closest('[onclick*="openDp"]')
+        || e.target.closest('.topbar-user')
+        || e.target.closest('.user-card');
+      if (!inDp && !inTrg) DPS.forEach(d => { const el = document.getElementById(d); if (el) el.classList.remove('open'); });
+    });
+
+    /* ══════════════════════════════════════════
+       Notification mark-all-read
+    ══════════════════════════════════════════ */
+    function markAllRead() {
+      document.querySelectorAll('.notif-item.unread').forEach(el => el.classList.remove('unread'));
+      document.querySelectorAll('.ni-dot').forEach(d => d.remove());
+      const badge = document.querySelector('#dp-notif .dp-badge-new');
+      if (badge) badge.textContent = '0 new';
+      const dot = document.querySelector('.topbar-btn .dot');
+      if (dot) dot.style.display = 'none';
+    }
+
+    /* ══════════════════════════════════════════
+       Task toggle
+    ══════════════════════════════════════════ */
+    function toggleTask(el) {
+      el.classList.toggle('done');
+      const open = document.querySelectorAll('#dp-tasks .task-item:not(.done)').length;
+      document.getElementById('task-count').textContent = open + ' open';
+    }
+
+    /* ══════════════════════════════════════════
+       ⑤ THEME SWITCHER
+    ══════════════════════════════════════════ */
+    const THEME_STORAGE_KEY = 'sqs-admin-theme';
+
+    function setTheme(t) {
+      document.documentElement.setAttribute('data-theme', t);
+      try {
+        localStorage.setItem(THEME_STORAGE_KEY, t);
+      } catch (err) {
+        // Ignore storage errors and still apply the theme for the current session.
+      }
+      document.querySelectorAll('.t-opt').forEach(o => o.classList.remove('active'));
+      const opt = document.getElementById('to-' + t);
+      if (opt) opt.classList.add('active');
+      renderChart();
+      DPS.forEach(d => { const el = document.getElementById(d); if (el) el.classList.remove('open'); });
+    }
+
+    
+    /* ══════════════════════════════════════════
+       BAR CHART
+    ══════════════════════════════════════════ */
+    const MONTHS = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan'];
+    const RECEIVED = [42, 58, 51, 67, 73, 65, 80];
+    const COMPLETED = [38, 50, 48, 60, 68, 60, 74];
+
+    function renderChart() {
+      const cEl = document.getElementById('barChart');
+      const lEl = document.getElementById('barLabels');
+      cEl.innerHTML = ''; lEl.innerHTML = '';
+      const maxV = Math.max(...RECEIVED, ...COMPLETED);
+      MONTHS.forEach((m, i) => {
+        const g = document.createElement('div'); g.className = 'bc-group';
+        const b1 = document.createElement('div'); b1.className = 'bc-bar b1';
+        b1.style.height = (RECEIVED[i] / maxV * 100) + '%'; b1.title = 'Received: ' + RECEIVED[i];
+        const b2 = document.createElement('div'); b2.className = 'bc-bar b2';
+        b2.style.height = (COMPLETED[i] / maxV * 100) + '%'; b2.title = 'Completed: ' + COMPLETED[i];
+        g.appendChild(b1); g.appendChild(b2); cEl.appendChild(g);
+        const lb = document.createElement('div'); lb.className = 'bl-grp';
+        lb.textContent = m; lEl.appendChild(lb);
+      });
+    }
+    renderChart();
+    setTheme(document.documentElement.getAttribute('data-theme') || 'dark');
+  </script>
+</body>
+
+</html>
+
+

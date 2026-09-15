@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/xampp/**)",
+      "Bash(./mysql/bin/mysql.exe -u root -e \"SELECT id, class, namespace, version, group, batch FROM migrations WHERE class LIKE '%015%' OR class LIKE '%016%' OR class LIKE '%017%' OR class LIKE 'Drop%' OR class LIKE 'AddCommercial%' OR class LIKE 'EnsureStockLot%';\" labcoredb)",
+      "Bash(./mysql/bin/mysql.exe -u root -e \"SELECT id, class, namespace, version, \\\\`batch\\\\` FROM migrations WHERE class LIKE '%Deprecated%' OR class LIKE '%CommercialFields%' OR class LIKE '%BrandForeign%';\" labcoredb)",
+      "Bash(./mysql/bin/mysql.exe -u root -e \"DELETE FROM migrations WHERE id IN \\(21, 22, 23\\);\" labcoredb)"
+    ]
+  }
+}

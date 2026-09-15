@@ -1,0 +1,1685 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SQS – Smart Quality Solution</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <style>
+    :root {
+      --navy: #EEF3FA;
+      --dark: #E3EBF5;
+      --card-bg: #FFFFFF;
+      --border: #CBD8EA;
+      --cyan: #0099CC;
+      --teal: #00897B;
+      --lime: #5A9E1A;
+      --muted: #5E738C;
+      --white: #0D1526;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: var(--navy);
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--dark);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--cyan);
+      border-radius: 3px;
+    }
+
+    /* ── Grid noise overlay ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0, 153, 204, .04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 153, 204, .04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    section,
+    nav,
+    footer {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ════════════════ NAVBAR ════════════════ */
+    .navbar {
+      background: rgba(238, 243, 250, .92);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 0;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      transition: box-shadow .3s;
+    }
+
+    .navbar.scrolled {
+      box-shadow: 0 4px 30px rgba(0, 153, 204, .1);
+    }
+
+    .navbar.scrolled {
+      box-shadow: 0 4px 30px rgba(0, 212, 255, .08);
+    }
+
+    .navbar-brand {
+      font-family: 'Space Mono', monospace;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--white) !important;
+      letter-spacing: -.02em;
+    }
+
+    .navbar-brand span {
+      color: var(--cyan);
+    }
+
+    .navbar-brand small {
+      display: block;
+      font-size: .55rem;
+      letter-spacing: .25em;
+      color: var(--muted);
+      text-transform: uppercase;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 400;
+      margin-top: -.15rem;
+    }
+
+    .nav-link {
+      color: var(--muted) !important;
+      font-size: .875rem;
+      font-weight: 500;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      padding: .5rem 1rem !important;
+      transition: color .2s;
+      position: relative;
+    }
+
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: 4px;
+      left: 1rem;
+      right: 1rem;
+      height: 1px;
+      background: var(--cyan);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform .25s;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+      color: var(--white) !important;
+    }
+
+    .nav-link:hover::after,
+    .nav-link.active::after {
+      transform: scaleX(1);
+    }
+
+    .btn-nav {
+      background: transparent;
+      border: 1px solid var(--cyan);
+      color: var(--cyan) !important;
+      border-radius: 4px;
+      padding: .45rem 1.2rem !important;
+      font-size: .8rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      transition: background .2s, color .2s;
+    }
+
+    .btn-nav:hover {
+      background: var(--cyan);
+      color: #fff !important;
+    }
+
+    .navbar-toggler {
+      border-color: var(--border);
+    }
+
+    .navbar-toggler-icon {
+      filter: none;
+    }
+
+    /* ════════════════ HERO ════════════════ */
+    #home {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 7rem 0 5rem;
+      overflow: hidden;
+    }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      background: rgba(0, 153, 204, .08);
+      border: 1px solid rgba(0, 153, 204, .25);
+      border-radius: 100px;
+      padding: .3rem 1rem;
+      font-size: .75rem;
+      color: var(--cyan);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-tag span {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--cyan);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: .4;
+        transform: scale(1.4);
+      }
+    }
+
+    .hero-title {
+      font-family: 'Space Mono', monospace;
+      font-size: clamp(2.4rem, 5vw, 4.2rem);
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -.03em;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-title .accent {
+      color: var(--cyan);
+    }
+
+    .hero-title .accent-2 {
+      color: var(--teal);
+    }
+
+    .hero-sub {
+      color: var(--muted);
+      font-size: 1.05rem;
+      max-width: 520px;
+      margin-bottom: 2.5rem;
+    }
+
+    .btn-primary-cta {
+      background: var(--cyan);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: .8rem 2rem;
+      font-weight: 700;
+      font-size: .875rem;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      text-decoration: none;
+      display: inline-block;
+      transition: transform .2s, box-shadow .2s;
+    }
+
+    .btn-primary-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(0, 153, 204, .3);
+      color: #fff;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--white);
+      border-radius: 4px;
+      padding: .8rem 2rem;
+      font-weight: 500;
+      font-size: .875rem;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      text-decoration: none;
+      display: inline-block;
+      transition: border-color .2s, color .2s;
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
+    /* Hero visual */
+    .hero-visual {
+      position: relative;
+    }
+
+    .terminal-card {
+      background: #111827;
+      border: 1px solid #1E2D45;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow:
+        0 40px 80px rgba(0, 0, 0, .6),
+        0 0 0 1px rgba(0, 212, 255, .07),
+        inset 0 1px 0 rgba(255, 255, 255, .04);
+      animation: floatY 6s ease-in-out infinite;
+    }
+
+    @keyframes floatY {
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-12px);
+      }
+    }
+
+    .term-bar {
+      background: #E3EBF5;
+      padding: .6rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .dot.r {
+      background: #FF5F57;
+    }
+
+    .dot.y {
+      background: #FEBC2E;
+    }
+
+    .dot.g {
+      background: #28C840;
+    }
+
+    .term-title {
+      margin-left: auto;
+      font-size: .68rem;
+      color: #8A99B3;
+      font-family: 'Space Mono', monospace;
+      letter-spacing: .05em;
+    }
+
+    .term-body {
+      padding: 1.2rem 1.5rem;
+      font-family: 'Space Mono', monospace;
+      font-size: .76rem;
+      line-height: 1.9;
+      background: #0D1526;
+    }
+
+    .term-line {
+      display: flex;
+      gap: .5rem;
+    }
+
+    .term-prompt {
+      color: #00B4A0;
+    }
+
+    .term-cmd {
+      color: #F0F6FF;
+    }
+
+    .term-out {
+      color: #8A99B3;
+      margin-left: 1.1rem;
+    }
+
+    .term-out.ok {
+      color: #A3E635;
+    }
+
+    .term-out.info {
+      color: #00D4FF;
+    }
+
+    .term-cursor {
+      display: inline-block;
+      width: 8px;
+      height: 1em;
+      background: #00D4FF;
+      vertical-align: text-bottom;
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: 0
+      }
+    }
+
+    /* Stats */
+    .stats-row {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+      margin-top: 3rem;
+      padding-top: 2.5rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .stat-item {}
+
+    .stat-num {
+      font-family: 'Space Mono', monospace;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--cyan);
+    }
+
+    .stat-label {
+      font-size: .78rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+    }
+
+    /* ════════════════ SECTIONS common ════════════════ */
+    section {
+      padding: 6rem 0;
+    }
+
+    .section-tag {
+      display: inline-block;
+      font-size: .7rem;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      font-family: 'Space Mono', monospace;
+      margin-bottom: .75rem;
+    }
+
+    .section-title {
+      font-family: 'Space Mono', monospace;
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -.02em;
+      margin-bottom: 1rem;
+    }
+
+    .section-title .accent {
+      color: var(--cyan);
+    }
+
+    .section-lead {
+      color: var(--muted);
+      max-width: 580px;
+      font-size: 1rem;
+    }
+
+    /* Divider */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 0;
+    }
+
+    /* ════════════════ SOLUTIONS ════════════════ */
+    #solutions {
+      background: var(--dark);
+    }
+
+    .sol-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-top: 3rem;
+    }
+
+    .sol-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      transition: border-color .3s, transform .3s, box-shadow .3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .sol-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--cyan), var(--teal));
+      opacity: 0;
+      transition: opacity .3s;
+    }
+
+    .sol-card:hover {
+      border-color: rgba(0, 153, 204, .35);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, .08);
+    }
+
+    .sol-card:hover::before {
+      opacity: 1;
+    }
+
+    .sol-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .ic-cyan {
+      background: rgba(0, 212, 255, .12);
+      color: var(--cyan);
+    }
+
+    .ic-teal {
+      background: rgba(0, 180, 160, .12);
+      color: var(--teal);
+    }
+
+    .ic-lime {
+      background: rgba(163, 230, 53, .12);
+      color: var(--lime);
+    }
+
+    .sol-card h4 {
+      font-family: 'Space Mono', monospace;
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: .5rem;
+      letter-spacing: -.01em;
+    }
+
+    .sol-card p {
+      color: var(--muted);
+      font-size: .9rem;
+      line-height: 1.65;
+      margin-bottom: 1.5rem;
+    }
+
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .4rem;
+    }
+
+    .tag {
+      font-size: .7rem;
+      padding: .2rem .65rem;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+    }
+
+    /* ════════════════ PRODUCTS ════════════════ */
+    #products {}
+
+    .prod-tabs {
+      display: flex;
+      gap: .5rem;
+      flex-wrap: wrap;
+      margin-bottom: 3rem;
+    }
+
+    .prod-tab {
+      padding: .55rem 1.3rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      font-size: .8rem;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .prod-tab.active,
+    .prod-tab:hover {
+      background: rgba(0, 212, 255, .1);
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
+    .prod-showcase {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      align-items: center;
+    }
+
+    @media(max-width:768px) {
+      .prod-showcase {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .prod-info h3 {
+      font-family: 'Space Mono', monospace;
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-bottom: .75rem;
+      letter-spacing: -.02em;
+    }
+
+    .prod-info p {
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+      font-size: .95rem;
+    }
+
+    .feature-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 2rem 0;
+    }
+
+    .feature-list li {
+      padding: .5rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: .9rem;
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      color: var(--muted);
+    }
+
+    .feature-list li:last-child {
+      border-bottom: none;
+    }
+
+    .feature-list li i {
+      color: var(--cyan);
+      width: 16px;
+      flex-shrink: 0;
+    }
+
+
+    .mock-screen {
+      background: #0D1526;
+      border: 1px solid #1E2D45;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow:
+        0 30px 60px rgba(0, 0, 0, .5),
+        0 0 0 1px rgba(0, 212, 255, .05),
+        inset 0 1px 0 rgba(255, 255, 255, .03);
+    }
+
+    .mock-bar {
+      background: #E3EBF5;
+      padding: .7rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .mock-body {
+      padding: 1.25rem 1.5rem;
+      background: #0D1526;
+    }
+
+    .data-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: .52rem .75rem;
+      border-radius: 6px;
+      margin-bottom: .35rem;
+      border: 1px solid transparent;
+      background: rgba(255, 255, 255, .025);
+      font-size: .78rem;
+      transition: background .15s, border-color .15s;
+    }
+
+    .data-row:hover {
+      background: rgba(0, 212, 255, .06);
+      border-color: rgba(0, 212, 255, .12);
+    }
+
+    .data-label {
+      color: #8A99B3;
+      font-family: 'Space Mono', monospace;
+      font-size: .72rem;
+    }
+
+    .data-badge {
+      font-size: .62rem;
+      padding: .13rem .52rem;
+      border-radius: 4px;
+      font-family: 'Space Mono', monospace;
+      font-weight: 700;
+    }
+
+    .badge-ok {
+      background: rgba(163, 230, 53, .12);
+      color: #A3E635;
+    }
+
+    .badge-warn {
+      background: rgba(251, 191, 36, .12);
+      color: #FBBF24;
+    }
+
+    .badge-err {
+      background: rgba(239, 68, 68, .12);
+      color: #EF4444;
+    }
+
+    .badge-info {
+      background: rgba(0, 212, 255, .12);
+      color: #00D4FF;
+    }
+
+
+    .mini-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 4px;
+      height: 46px;
+      margin-top: 1rem;
+      padding-top: .5rem;
+      border-top: 1px solid #1E2D45;
+    }
+
+    .bar {
+      flex: 1;
+      border-radius: 3px 3px 0 0;
+      background: #1E2D45;
+      transition: background .25s;
+      cursor: pointer;
+    }
+
+    .bar.active {
+      background: linear-gradient(to top, #00B4A0, #00D4FF);
+    }
+
+    .bar:hover {
+      background: #00D4FF;
+      opacity: .85;
+    }
+
+    /* ════════════════ FEATURES HIGHLIGHTS ════════════════ */
+    #features {
+      background: var(--dark);
+    }
+
+    .feat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.25rem;
+      margin-top: 3rem;
+    }
+
+    .feat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.5rem;
+      transition: border-color .25s, box-shadow .25s;
+    }
+
+    .feat-card:hover {
+      border-color: rgba(0, 153, 204, .3);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, .08);
+    }
+
+    .feat-icon {
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+      color: var(--cyan);
+    }
+
+    .feat-card h5 {
+      font-size: .9rem;
+      font-weight: 700;
+      margin-bottom: .4rem;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .feat-card p {
+      font-size: .82rem;
+      color: var(--muted);
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    /* ════════════════ ABOUT ════════════════ */
+    #about {}
+
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5rem;
+      align-items: center;
+    }
+
+    @media(max-width:768px) {
+      .about-grid {
+        grid-template-columns: 1fr;
+        gap: 3rem;
+      }
+    }
+
+    .about-visual {
+      position: relative;
+    }
+
+    .hexgrid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: .75rem;
+    }
+
+    .hex-item {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem .75rem;
+      text-align: center;
+      font-size: .75rem;
+      color: var(--muted);
+      transition: border-color .2s, color .2s;
+      cursor: default;
+    }
+
+    .hex-item:hover {
+      border-color: var(--cyan);
+      color: var(--white);
+    }
+
+    .hex-item i {
+      display: block;
+      font-size: 1.2rem;
+      margin-bottom: .4rem;
+      color: var(--cyan);
+    }
+
+    .value-list {
+      margin-top: 2rem;
+    }
+
+    .value-item {
+      display: flex;
+      gap: 1rem;
+      padding: 1.2rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .value-item:last-child {
+      border-bottom: none;
+    }
+
+    .value-num {
+      font-family: 'Space Mono', monospace;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--cyan);
+      min-width: 2rem;
+    }
+
+    .value-item h5 {
+      font-size: .9rem;
+      font-weight: 700;
+      margin-bottom: .2rem;
+    }
+
+    .value-item p {
+      font-size: .83rem;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    /* ════════════════ CONTACT ════════════════ */
+    #contact {
+      background: var(--dark);
+    }
+
+    .contact-wrap {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 3rem;
+      max-width: 720px;
+      margin: 3rem auto 0;
+    }
+
+    .form-label {
+      font-size: .8rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: .4rem;
+      font-weight: 500;
+    }
+
+    .form-control,
+    .form-select {
+      background: #F4F7FB;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--white);
+      font-size: .9rem;
+      padding: .75rem 1rem;
+      transition: border-color .2s;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+      background: #fff;
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px rgba(0, 153, 204, .12);
+      color: var(--white);
+    }
+
+    .form-control::placeholder {
+      color: var(--muted);
+      opacity: .5;
+    }
+
+    .form-select option {
+      background: #fff;
+      color: var(--white);
+    }
+
+    /* ════════════════ FOOTER ════════════════ */
+    footer {
+      background: #1B2B44;
+      border-top: 1px solid #243850;
+      padding: 3rem 0 1.5rem;
+    }
+
+    .footer-brand {
+      font-family: 'Space Mono', monospace;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #F0F6FF;
+      margin-bottom: .5rem;
+    }
+
+    .footer-brand span {
+      color: var(--cyan);
+    }
+
+    .footer-slogan {
+      font-size: .78rem;
+      color: rgba(240, 246, 255, .5);
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+
+    .footer-links {
+      list-style: none;
+      padding: 0;
+    }
+
+    .footer-links li {
+      margin-bottom: .4rem;
+    }
+
+    .footer-links a {
+      color: rgba(240, 246, 255, .55);
+      text-decoration: none;
+      font-size: .85rem;
+      transition: color .2s;
+    }
+
+
+    .footer-links a:hover {
+      color: var(--cyan);
+    }
+
+
+    .footer-h {
+      font-size: .7rem;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: rgba(240, 246, 255, .4);
+      margin-bottom: 1rem;
+      font-weight: 700;
+    }
+
+
+    .social-row {
+      display: flex;
+      gap: .75rem;
+      margin-top: 1rem;
+    }
+
+    .social-btn {
+      width: 36px;
+      height: 36px;
+      border: 1px solid rgba(255, 255, 255, .15);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(240, 246, 255, .5);
+      text-decoration: none;
+      font-size: .85rem;
+      transition: border-color .2s, color .2s;
+    }
+
+    .social-btn:hover {
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
+    .footer-bottom {
+      border-top: 1px solid rgba(255, 255, 255, .08);
+      margin-top: 2.5rem;
+      padding-top: 1.5rem;
+      font-size: .78rem;
+      color: rgba(240, 246, 255, .4);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    /* ── Animations ── */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity .6s ease, transform .6s ease;
+    }
+
+    .fade-up.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Responsive misc */
+    @media(max-width:576px) {
+      .stats-row {
+        gap: 1.5rem;
+      }
+
+      .contact-wrap {
+        padding: 1.75rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ══════════════ NAVBAR ══════════════ -->
+  <nav class="navbar navbar-expand-lg" id="mainNav">
+    <div class="container">
+      <a class="navbar-brand" href="#home">
+        SQ<span>S</span>
+        <small>Smart Quality Solution</small>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse justify-content-end" id="navMenu">
+        <ul class="navbar-nav align-items-lg-center gap-1 me-3">
+          <li class="nav-item"><a class="nav-link active" href="#home">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="#solutions">Solution</a></li>
+          <li class="nav-item"><a class="nav-link" href="#products">Product</a></li>
+          <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+          <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+        </ul>
+        <a href="#contact" class="btn-nav nav-link">Get a Demo</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ══════════════ HERO ══════════════ -->
+  <section id="home">
+    <div class="container">
+      <div class="row align-items-center g-5">
+        <div class="col-lg-6">
+          <div class="hero-tag fade-up"><span></span> Software for Science & Quality</div>
+          <h1 class="hero-title fade-up" style="transition-delay:.1s">
+            Intelligent<br>
+            <span class="accent">Laboratory</span><br>
+            <span class="accent-2">Software</span> Solutions
+          </h1>
+          <p class="hero-sub fade-up" style="transition-delay:.2s">
+            Empowering laboratories, quality teams, and chemical departments with smart, compliant, and efficient
+            software — built for ISO-certified environments.
+          </p>
+          <div class="d-flex flex-wrap gap-3 fade-up" style="transition-delay:.3s">
+            <a href="#products" class="btn-primary-cta">Explore Products</a>
+            <a href="#contact" class="btn-ghost">Schedule Demo</a>
+          </div>
+          <div class="stats-row fade-up" style="transition-delay:.4s">
+            <div class="stat-item">
+              <div class="stat-num">50+</div>
+              <div class="stat-label">Laboratories</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-num">3</div>
+              <div class="stat-label">Core Products</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-num">ISO 17025</div>
+              <div class="stat-label">Compliant</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="hero-visual fade-up" style="transition-delay:.25s">
+            <div class="terminal-card">
+              <div class="term-bar">
+                <div class="dot r"></div>
+                <div class="dot y"></div>
+                <div class="dot g"></div>
+                <div class="term-title">SQS · Lab Dashboard · v3.2</div>
+              </div>
+              <div class="term-body">
+                <div class="term-line"><span class="term-prompt">$</span><span class="term-cmd">sqs init --module LIMS
+                    --env production</span></div>
+                <div class="term-out ok">✔ LIMS module loaded</div>
+                <div class="term-out ok">✔ Database connection established</div>
+                <div class="term-line mt-2"><span class="term-prompt">$</span><span class="term-cmd">sqs check
+                    --compliance ISO17025</span></div>
+                <div class="term-out info">ℹ Scanning 147 test records...</div>
+                <div class="term-out ok">✔ Calibration: PASSED (12/12)</div>
+                <div class="term-out ok">✔ Traceability: PASSED</div>
+                <div class="term-out ok">✔ Document Control: PASSED</div>
+                <div class="term-line mt-2"><span class="term-prompt">$</span><span class="term-cmd">sqs report --type
+                    daily --export pdf</span></div>
+                <div class="term-out ok">✔ Report generated: daily_2025-01-15.pdf</div>
+                <div class="term-line"><span class="term-prompt">$</span><span class="term-cursor"></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider" />
+
+  <!-- ══════════════ SOLUTIONS ══════════════ -->
+  <section id="solutions">
+    <div class="container">
+      <div class="fade-up">
+        <div class="section-tag">// Solutions</div>
+        <h2 class="section-title">End-to-end <span class="accent">Lab Management</span></h2>
+        <p class="section-lead">From sample intake to compliance reporting — our software suite covers every critical
+          workflow in your laboratory.</p>
+      </div>
+      <div class="sol-grid">
+
+        <div class="sol-card fade-up" style="transition-delay:.1s">
+          <div class="sol-icon ic-cyan"><i class="fa-solid fa-flask-vial"></i></div>
+          <h4>LIMS</h4>
+          <p>Laboratory Information Management System that digitizes your entire sample lifecycle — from registration,
+            testing, results entry to final report generation.</p>
+          <div class="tag-list">
+            <span class="tag">Sample Tracking</span>
+            <span class="tag">Workflow Engine</span>
+            <span class="tag">CoA Export</span>
+            <span class="tag">Audit Trail</span>
+          </div>
+        </div>
+
+        <div class="sol-card fade-up" style="transition-delay:.2s">
+          <div class="sol-icon ic-teal"><i class="fa-solid fa-shield-halved"></i></div>
+          <h4>ISO Builder – Lab Resource Management</h4>
+          <p>A complete quality management platform aligned with ISO 17025. Manage instruments, personnel training,
+            competency records, and internal audits in one place.</p>
+          <div class="tag-list">
+            <span class="tag">ISO 17025</span>
+            <span class="tag">Calibration</span>
+            <span class="tag">Training Matrix</span>
+            <span class="tag">CAPA</span>
+          </div>
+        </div>
+
+        <div class="sol-card fade-up" style="transition-delay:.3s">
+          <div class="sol-icon ic-lime"><i class="fa-solid fa-vials"></i></div>
+          <h4>Chemical Inventory</h4>
+          <p>Real-time chemical stock management with safety data sheet integration, expiry tracking, SDS compliance,
+            and regulatory reporting for your lab environment.</p>
+          <div class="tag-list">
+            <span class="tag">SDS / GHS</span>
+            <span class="tag">Stock Control</span>
+            <span class="tag">Expiry Alerts</span>
+            <span class="tag">Regulatory Report</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider" />
+
+  <!-- ══════════════ PRODUCTS ══════════════ -->
+  <section id="products">
+    <div class="container">
+      <div class="fade-up">
+        <div class="section-tag">// Products</div>
+        <h2 class="section-title">Purpose-built <span class="accent">Software</span></h2>
+        <p class="section-lead">Three specialized products. One unified ecosystem. Built for labs that demand precision.
+        </p>
+      </div>
+
+      <div class="prod-tabs mt-4">
+        <button class="prod-tab active" onclick="switchTab(this,'lims')">LIMS</button>
+        <button class="prod-tab" onclick="switchTab(this,'iso')">ISO Builder</button>
+        <button class="prod-tab" onclick="switchTab(this,'chem')">Chemical Inventory</button>
+      </div>
+
+      <!-- LIMS -->
+      <div class="prod-showcase" id="tab-lims">
+        <div class="prod-info fade-up">
+          <h3>Laboratory Information<br>Management System</h3>
+          <p>Streamline every stage of the laboratory process. From sample registration to result validation and client
+            report delivery.</p>
+          <ul class="feature-list">
+            <li><i class="fa-solid fa-check-circle"></i> Automated sample registration & barcoding</li>
+            <li><i class="fa-solid fa-check-circle"></i> Test assignment & multi-analyst workflow</li>
+            <li><i class="fa-solid fa-check-circle"></i> Result entry with method-based calculations</li>
+            <li><i class="fa-solid fa-check-circle"></i> Certificate of Analysis (CoA) PDF generation</li>
+            <li><i class="fa-solid fa-check-circle"></i> Client portal with secure result access</li>
+            <li><i class="fa-solid fa-check-circle"></i> Full traceability & electronic signature</li>
+          </ul>
+          <a href="#contact" class="btn-primary-cta">Request Demo</a>
+        </div>
+        <div class="fade-up" style="transition-delay:.2s">
+          <div class="mock-screen">
+            <div class="mock-bar">
+              <div class="dot r"></div>
+              <div class="dot y"></div>
+              <div class="dot g"></div><span
+                style="font-size:.7rem;color:var(--muted);margin-left:auto;font-family:'Space Mono',monospace">LIMS ·
+                Samples</span>
+            </div>
+            <div class="mock-body">
+              <div class="data-row"><span class="data-label">SMP-2025-0041</span><span
+                  class="data-badge badge-ok">COMPLETED</span></div>
+              <div class="data-row"><span class="data-label">SMP-2025-0042</span><span
+                  class="data-badge badge-warn">PENDING</span></div>
+              <div class="data-row"><span class="data-label">SMP-2025-0043</span><span class="data-badge badge-info">IN
+                  PROGRESS</span></div>
+              <div class="data-row"><span class="data-label">SMP-2025-0044</span><span
+                  class="data-badge badge-ok">COMPLETED</span></div>
+              <div class="data-row"><span class="data-label">SMP-2025-0045</span><span
+                  class="data-badge badge-err">REVIEW</span></div>
+              <div style="font-size:.72rem;color:var(--muted);margin-top:1rem;font-family:'Space Mono',monospace">Sample
+                throughput (7d)</div>
+              <div class="mini-chart">
+                <div class="bar" style="height:40%"></div>
+                <div class="bar active" style="height:60%"></div>
+                <div class="bar" style="height:50%"></div>
+                <div class="bar active" style="height:80%"></div>
+                <div class="bar" style="height:55%"></div>
+                <div class="bar active" style="height:90%"></div>
+                <div class="bar active" style="height:70%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ISO Builder -->
+      <div class="prod-showcase d-none" id="tab-iso">
+        <div class="prod-info fade-up">
+          <h3>ISO Builder<br>Lab Resource Management</h3>
+          <p>Your digital quality management system. Built around ISO 17025 requirements, helping labs achieve and
+            maintain accreditation with minimal overhead.</p>
+          <ul class="feature-list">
+            <li><i class="fa-solid fa-check-circle"></i> Instrument register & calibration schedule</li>
+            <li><i class="fa-solid fa-check-circle"></i> Personnel training plans & competency records</li>
+            <li><i class="fa-solid fa-check-circle"></i> Method validation documentation</li>
+            <li><i class="fa-solid fa-check-circle"></i> Internal audit checklists & findings</li>
+            <li><i class="fa-solid fa-check-circle"></i> CAPA (Corrective & Preventive Actions)</li>
+            <li><i class="fa-solid fa-check-circle"></i> Document control & version history</li>
+          </ul>
+          <a href="#contact" class="btn-primary-cta">Request Demo</a>
+        </div>
+        <div class="fade-up" style="transition-delay:.2s">
+          <div class="mock-screen">
+            <div class="mock-bar">
+              <div class="dot r"></div>
+              <div class="dot y"></div>
+              <div class="dot g"></div><span
+                style="font-size:.7rem;color:var(--muted);margin-left:auto;font-family:'Space Mono',monospace">ISO
+                Builder · Instruments</span>
+            </div>
+            <div class="mock-body">
+              <div class="data-row"><span class="data-label">Analytical Balance · ID-021</span><span
+                  class="data-badge badge-ok">CALIBRATED</span></div>
+              <div class="data-row"><span class="data-label">pH Meter · ID-034</span><span
+                  class="data-badge badge-warn">DUE SOON</span></div>
+              <div class="data-row"><span class="data-label">HPLC System · ID-007</span><span
+                  class="data-badge badge-ok">CALIBRATED</span></div>
+              <div class="data-row"><span class="data-label">UV-Vis Spectrophotometer</span><span
+                  class="data-badge badge-err">OVERDUE</span></div>
+              <div class="data-row"><span class="data-label">Centrifuge · ID-019</span><span
+                  class="data-badge badge-info">SCHEDULED</span></div>
+              <div style="font-size:.72rem;color:var(--muted);margin-top:1rem;font-family:'Space Mono',monospace">
+                Calibration compliance rate</div>
+              <div class="mini-chart">
+                <div class="bar active" style="height:70%"></div>
+                <div class="bar active" style="height:82%"></div>
+                <div class="bar active" style="height:91%"></div>
+                <div class="bar active" style="height:88%"></div>
+                <div class="bar active" style="height:95%"></div>
+                <div class="bar active" style="height:90%"></div>
+                <div class="bar active" style="height:98%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chemical Inventory -->
+      <div class="prod-showcase d-none" id="tab-chem">
+        <div class="prod-info fade-up">
+          <h3>Chemical Inventory<br>Management System</h3>
+          <p>Stay compliant and safe. Track every chemical in your facility with real-time stock levels, SDS
+            integration, and regulatory reporting tools.</p>
+          <ul class="feature-list">
+            <li><i class="fa-solid fa-check-circle"></i> Chemical stock intake, usage & disposal log</li>
+            <li><i class="fa-solid fa-check-circle"></i> SDS library with GHS hazard display</li>
+            <li><i class="fa-solid fa-check-circle"></i> Expiry date alerts & low-stock notifications</li>
+            <li><i class="fa-solid fa-check-circle"></i> Storage location & compatibility matrix</li>
+            <li><i class="fa-solid fa-check-circle"></i> CAS number search & substance database</li>
+            <li><i class="fa-solid fa-check-circle"></i> Regulatory usage reports (MOH, REACH, etc.)</li>
+          </ul>
+          <a href="#contact" class="btn-primary-cta">Request Demo</a>
+        </div>
+        <div class="fade-up" style="transition-delay:.2s">
+          <div class="mock-screen">
+            <div class="mock-bar">
+              <div class="dot r"></div>
+              <div class="dot y"></div>
+              <div class="dot g"></div><span
+                style="font-size:.7rem;color:var(--muted);margin-left:auto;font-family:'Space Mono',monospace">Chemical
+                Inventory</span>
+            </div>
+            <div class="mock-body">
+              <div class="data-row"><span class="data-label">Acetonitrile (HPLC)</span><span
+                  class="data-badge badge-ok">4.5 L</span></div>
+              <div class="data-row"><span class="data-label">Hydrochloric Acid 37%</span><span
+                  class="data-badge badge-warn">LOW STOCK</span></div>
+              <div class="data-row"><span class="data-label">Methanol GR grade</span><span
+                  class="data-badge badge-ok">12 L</span></div>
+              <div class="data-row"><span class="data-label">Sodium Hydroxide</span><span
+                  class="data-badge badge-err">EXPIRED</span></div>
+              <div class="data-row"><span class="data-label">Sulfuric Acid 98%</span><span class="data-badge badge-ok">8
+                  L</span></div>
+              <div style="font-size:.72rem;color:var(--muted);margin-top:1rem;font-family:'Space Mono',monospace">
+                Monthly chemical consumption</div>
+              <div class="mini-chart">
+                <div class="bar" style="height:55%"></div>
+                <div class="bar active" style="height:65%"></div>
+                <div class="bar active" style="height:72%"></div>
+                <div class="bar" style="height:60%"></div>
+                <div class="bar active" style="height:85%"></div>
+                <div class="bar active" style="height:78%"></div>
+                <div class="bar active" style="height:90%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <hr class="divider" />
+
+  <!-- ══════════════ FEATURES ══════════════ -->
+  <section id="features">
+    <div class="container">
+      <div class="fade-up">
+        <div class="section-tag">// Highlights</div>
+        <h2 class="section-title">Why labs choose <span class="accent">SQS</span></h2>
+        <p class="section-lead">Feature-rich, yet intuitive. Designed by people who understand laboratory workflows.</p>
+      </div>
+      <div class="feat-grid">
+        <div class="feat-card fade-up" style="transition-delay:.05s">
+          <div class="feat-icon"><i class="fa-solid fa-lock"></i></div>
+          <h5>Role-based Access Control</h5>
+          <p>Granular permissions per module. Analyst, supervisor, auditor — each with scoped access and audit logs.</p>
+        </div>
+        <div class="feat-card fade-up" style="transition-delay:.1s">
+          <div class="feat-icon"><i class="fa-solid fa-file-pdf"></i></div>
+          <h5>Automated PDF Reports</h5>
+          <p>One-click CoA, calibration certificates, and compliance reports with your company branding.</p>
+        </div>
+        <div class="feat-card fade-up" style="transition-delay:.15s">
+          <div class="feat-icon"><i class="fa-solid fa-bell"></i></div>
+          <h5>Smart Notifications</h5>
+          <p>Never miss a calibration due date, expiry, or pending approval. Email and in-app alerts built-in.</p>
+        </div>
+        <div class="feat-card fade-up" style="transition-delay:.2s">
+          <div class="feat-icon"><i class="fa-solid fa-database"></i></div>
+          <h5>Centralized Data</h5>
+          <p>Single source of truth across all lab operations. No more scattered spreadsheets or paper trails.</p>
+        </div>
+        <div class="feat-card fade-up" style="transition-delay:.25s">
+          <div class="feat-icon"><i class="fa-solid fa-mobile-screen-button"></i></div>
+          <h5>Responsive Interface</h5>
+          <p>Fully responsive web application. Works seamlessly on desktop, tablet, and mobile browsers.</p>
+        </div>
+        <div class="feat-card fade-up" style="transition-delay:.3s">
+          <div class="feat-icon"><i class="fa-solid fa-chart-line"></i></div>
+          <h5>Analytics Dashboard</h5>
+          <p>Real-time KPIs, trend charts, and performance metrics for lab managers and quality teams.</p>
+        </div>
+        <div class="feat-card fade-up" style="transition-delay:.35s">
+          <div class="feat-icon"><i class="fa-solid fa-code-branch"></i></div>
+          <h5>API Integration Ready</h5>
+          <p>RESTful API endpoints for integration with ERP, SCADA, instruments, and third-party systems.</p>
+        </div>
+        <div class="feat-card fade-up" style="transition-delay:.4s">
+          <div class="feat-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+          <h5>Cloud or On-Premise</h5>
+          <p>Flexible deployment options. Host on your own servers or use our managed cloud infrastructure.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider" />
+
+  <!-- ══════════════ ABOUT ══════════════ -->
+  <section id="about">
+    <div class="container">
+      <div class="about-grid">
+        <div class="fade-up">
+          <div class="section-tag">// About SQS</div>
+          <h2 class="section-title">Built by engineers,<br>for <span class="accent">scientists</span></h2>
+          <p style="color:var(--muted);margin-bottom:2rem;font-size:.95rem">SQS was founded with a single mission:
+            remove the friction between laboratory work and quality compliance. We build software that fits the way
+            scientists actually work.</p>
+
+          <div class="value-list">
+            <div class="value-item">
+              <div class="value-num">01</div>
+              <div>
+                <h5>Domain Expertise</h5>
+                <p>Our team combines software engineers and laboratory professionals — we know both code and chemistry.
+                </p>
+              </div>
+            </div>
+            <div class="value-item">
+              <div class="value-num">02</div>
+              <div>
+                <h5>Standards-First Design</h5>
+                <p>Every feature is designed with ISO 17025, GLP, and regulatory compliance requirements in mind from
+                  day one.</p>
+              </div>
+            </div>
+            <div class="value-item">
+              <div class="value-num">03</div>
+              <div>
+                <h5>Customer-Centric Support</h5>
+                <p>Dedicated implementation team, training programs, and ongoing support — we stay with you after
+                  go-live.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="about-visual fade-up" style="transition-delay:.2s">
+          <div class="hexgrid">
+            <div class="hex-item"><i class="fa-solid fa-flask"></i>Chemistry</div>
+            <div class="hex-item"><i class="fa-solid fa-microscope"></i>Biology</div>
+            <div class="hex-item"><i class="fa-solid fa-atom"></i>Physics</div>
+            <div class="hex-item"><i class="fa-solid fa-industry"></i>Industrial</div>
+            <div class="hex-item"><i class="fa-solid fa-pills"></i>Pharma</div>
+            <div class="hex-item"><i class="fa-solid fa-leaf"></i>Environment</div>
+            <div class="hex-item"><i class="fa-solid fa-wheat-awn"></i>Food & Agri</div>
+            <div class="hex-item"><i class="fa-solid fa-oil-well"></i>Petroleum</div>
+          </div>
+          <div
+            style="margin-top:2rem;background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:1.5rem;">
+            <div
+              style="font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem;font-family:'Space Mono',monospace">
+              Industries Served</div>
+            <div style="font-size:1.8rem;font-family:'Space Mono',monospace;font-weight:700;color:var(--white)">8 <span
+                style="font-size:1rem;color:var(--muted);font-weight:400">sectors</span></div>
+            <div style="height:4px;background:var(--border);border-radius:2px;margin-top:.75rem;overflow:hidden">
+              <div
+                style="width:72%;height:100%;background:linear-gradient(90deg,var(--teal),var(--cyan));border-radius:2px">
+              </div>
+            </div>
+            <div style="font-size:.78rem;color:var(--muted);margin-top:.5rem">72% of clients in chemical /
+              pharmaceutical</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider" />
+
+  <!-- ══════════════ CONTACT ══════════════ -->
+  <section id="contact">
+    <div class="container">
+      <div class="text-center fade-up">
+        <div class="section-tag">// Contact</div>
+        <h2 class="section-title">Ready to <span class="accent">modernize</span> your lab?</h2>
+        <p class="section-lead mx-auto text-center">Tell us about your lab and we'll show you the right solution — no
+          commitment required.</p>
+      </div>
+
+      <div class="contact-wrap fade-up" style="transition-delay:.1s">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Full Name</label>
+            <input type="text" class="form-control" placeholder="Dr. Nguyen Van A" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Email Address</label>
+            <input type="email" class="form-control" placeholder="you@laboratory.com" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Organization</label>
+            <input type="text" class="form-control" placeholder="Laboratory / Company name" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Product Interest</label>
+            <select class="form-select">
+              <option value="">Select a product...</option>
+              <option>LIMS</option>
+              <option>ISO Builder – Lab Resource Management</option>
+              <option>Chemical Inventory</option>
+              <option>Full Suite</option>
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Message</label>
+            <textarea class="form-control" rows="4"
+              placeholder="Describe your lab size, current challenges, or what you'd like to see in a demo..."></textarea>
+          </div>
+          <div class="col-12 pt-1">
+            <button class="btn-primary-cta w-100" style="text-align:center">Send Message &nbsp;<i
+                class="fa-solid fa-arrow-right"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ FOOTER ══════════════ -->
+  <footer>
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-lg-4 col-md-6">
+          <div class="footer-brand">SQ<span>S</span></div>
+          <div class="footer-slogan">Smart Quality Solution</div>
+          <p style="font-size:.83rem;color:var(--muted);max-width:280px">Intelligent software for laboratories, quality
+            teams, and chemical facilities.</p>
+          <div class="social-row">
+            <a href="#" class="social-btn"><i class="fab fa-linkedin-in"></i></a>
+            <a href="#" class="social-btn"><i class="fab fa-github"></i></a>
+            <a href="#" class="social-btn"><i class="fab fa-youtube"></i></a>
+            <a href="#" class="social-btn"><i class="fas fa-envelope"></i></a>
+          </div>
+        </div>
+        <div class="col-lg-2 col-md-3 col-6">
+          <div class="footer-h">Products</div>
+          <ul class="footer-links">
+            <li><a href="#">LIMS</a></li>
+            <li><a href="#">ISO Builder</a></li>
+            <li><a href="#">Chemical Inventory</a></li>
+            <li><a href="#">API Documentation</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-2 col-md-3 col-6">
+          <div class="footer-h">Company</div>
+          <ul class="footer-links">
+            <li><a href="#about">About Us</a></li>
+            <li><a href="#">Careers</a></li>
+            <li><a href="#">Blog</a></li>
+            <li><a href="#contact">Contact</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-4 col-md-6">
+          <div class="footer-h">Contact Info</div>
+          <ul class="footer-links">
+            <li><i class="fa-solid fa-envelope" style="color:var(--cyan);margin-right:.5rem;font-size:.75rem"></i>
+              info@sqs-lab.com</li>
+            <li style="margin-top:.4rem"><i class="fa-solid fa-phone"
+                style="color:var(--cyan);margin-right:.5rem;font-size:.75rem"></i> +84 (0) 900 000 000</li>
+            <li style="margin-top:.4rem"><i class="fa-solid fa-location-dot"
+                style="color:var(--cyan);margin-right:.5rem;font-size:.75rem"></i> Ho Chi Minh City, Vietnam</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2025 SQS – Smart Quality Solution. All rights reserved.</span>
+        <span>Privacy Policy · Terms of Service</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Navbar scroll effect
+    const nav = document.getElementById('mainNav');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 40);
+    });
+
+    // Active nav on scroll
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.nav-link[href^="#"]');
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          navLinks.forEach(l => l.classList.remove('active'));
+          const link = document.querySelector(`.nav-link[href="#${e.target.id}"]`);
+          if (link) link.classList.add('active');
+        }
+      });
+    }, { threshold: 0.4 });
+    sections.forEach(s => observer.observe(s));
+
+    // Fade-up animation
+    const fadeEls = document.querySelectorAll('.fade-up');
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.12 });
+    fadeEls.forEach(el => io.observe(el));
+
+    // Product tabs
+    function switchTab(btn, id) {
+      document.querySelectorAll('.prod-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      ['lims', 'iso', 'chem'].forEach(t => {
+        const el = document.getElementById('tab-' + t);
+        el.classList.toggle('d-none', t !== id);
+      });
+    }
+
+    // Smooth scroll for all anchors
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', e => {
+        const target = document.querySelector(a.getAttribute('href'));
+        if (target) {
+          e.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          // Close mobile menu
+          const menu = document.getElementById('navMenu');
+          if (menu.classList.contains('show')) {
+            bootstrap.Collapse.getInstance(menu)?.hide();
+          }
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>
